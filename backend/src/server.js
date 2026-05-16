@@ -1,9 +1,9 @@
-require('dotenv').config();
+require('dotenv').config({quiet: true});
 const express = require('express');
 
 const app = express();
-const port = process.env.PORT || 5000;
-const host = process.env.HOST || 'localhost';
+const port = process.env.PORT;
+const host = process.env.HOST;
 
 
 app.get('/', (req, res) => {
