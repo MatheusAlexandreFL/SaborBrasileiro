@@ -4,10 +4,10 @@ const jwt = require('jsonwebtoken');
 function autenticacao(req, res, next) {
     try {
         const authHeader = req.headers.authorization;
-        if (!auth) {
+        if (!authHeader) {
             throw new Error('Token não fornecido');
         }
-        const [, token] = auth.split(' ');
+        const [, token] = authHeader.split(' ');
         jwt.verify(token, process.env.SECRET_KEY, (erro, decoded) => {
             if (erro) {
                 throw new Error('Token inválido' + erro.message);
