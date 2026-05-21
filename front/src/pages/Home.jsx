@@ -1,9 +1,12 @@
+import SaborHeader from "../components/SaborHeader";
+
 const Home = () => {
-    return(
-        <div>
-      <h1></h1>
+  return (
+    <div className="min-h-screen bg-white">
+      <SaborHeader />
     </div>
-    )
-}
+  );
+};
+
 export default Home;
 
