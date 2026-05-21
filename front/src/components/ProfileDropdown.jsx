@@ -41,17 +41,17 @@ const ProfileDropdown = ({
           type === "check" ? (
             <label
               key={section.title}
-              className="flex w-full items-start gap-3 rounded-md px-2 py-2 transition hover:cursor-pointer hover:bg-zinc-100"
+              className="grid w-full grid-cols-[auto_1fr] gap-x-3 rounded-md px-2 py-2 transition hover:cursor-pointer hover:bg-zinc-100"
             >
-              <input
-                type="checkbox"
-                defaultChecked={section.checked}
-                className="mt-0.5 size-4 rounded border-zinc-400 accent-red-700 hover:cursor-pointer"
-              />
-              <span>
-                <span className="block font-notoserif text-sm font-medium text-black">{section.title}</span>
-                <span className="mt-1 block text-xs leading-5 text-zinc-500">{section.text}</span>
+              <span className="flex h-5 items-center">
+                <input
+                  type="checkbox"
+                  defaultChecked={section.checked}
+                  className="size-4 rounded border-zinc-400 accent-red-700 hover:cursor-pointer"
+                />
               </span>
+              <span className="font-notoserif text-sm font-medium leading-5 text-black">{section.title}</span>
+              <span className="col-start-2 mt-1 text-xs leading-5 text-zinc-500">{section.text}</span>
             </label>
           ) : (
             <button

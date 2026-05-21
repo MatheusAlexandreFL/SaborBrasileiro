@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ProfileDropdown from "./ProfileDropdown";
 import Sidebar from "./Sidebar";
@@ -34,6 +34,27 @@ const SaborHeader = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isFilterOpen && !isProfileOpen) {
+      return undefined;
+    }
+
+    const handleOutsideClick = (event) => {
+      if (event.target.closest("[data-dropdown-root]")) {
+        return;
+      }
+
+      setIsFilterOpen(false);
+      setIsProfileOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
+    };
+  }, [isFilterOpen, isProfileOpen]);
+
   return (
     <>
       <header className="w-full border-b border-zinc-300 bg-white">
@@ -58,7 +79,11 @@ const SaborHeader = () => {
                 type="button"
                 className="grid size-10 place-items-center rounded-full text-black transition hover:cursor-pointer hover:bg-zinc-100"
                 aria-label="Abrir menu de navegação"
-                onClick={() => setIsSidebarOpen(true)}
+                onClick={() => {
+                  setIsFilterOpen(false);
+                  setIsProfileOpen(false);
+                  setIsSidebarOpen(true);
+                }}
               >
                 <HamburgerIcon />
               </button>
@@ -103,7 +128,11 @@ const SaborHeader = () => {
                   type="button"
                   className="grid size-10 place-items-center rounded-full text-black transition hover:cursor-pointer hover:bg-zinc-100"
                   aria-label="Abrir menu de navegação"
-                  onClick={() => setIsSidebarOpen(true)}
+                  onClick={() => {
+                    setIsFilterOpen(false);
+                    setIsProfileOpen(false);
+                    setIsSidebarOpen(true);
+                  }}
                 >
                   <HamburgerIcon />
                 </button>
@@ -135,7 +164,7 @@ const SaborHeader = () => {
 };
 
 const ProfileMenu = ({ isOpen, onToggle }) => (
-  <div className="relative">
+  <div className="relative" data-dropdown-root>
     <button
       type="button"
       className="flex items-center text-black hover:cursor-pointer"
@@ -165,7 +194,7 @@ const SearchInput = () => (
 );
 
 const FilterMenu = ({ isOpen, onToggle }) => (
-  <div className="relative shrink-0">
+  <div className="relative shrink-0" data-dropdown-root>
     <button
       type="button"
       className="flex size-11 items-center justify-center rounded-full border border-zinc-400 bg-white text-sm text-black transition hover:cursor-pointer hover:border-zinc-700 xl:w-auto xl:gap-2 xl:px-5"
