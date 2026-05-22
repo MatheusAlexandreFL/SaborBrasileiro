@@ -8,9 +8,9 @@ module.exports = {
     database: process.env.SERVER_DATABASE,
     port: process.env.SERVER_DB_PORT
   },
-  useNullAsDefault: true
-};
- migrations: {
+  useNullAsDefault: true,
+  migrations: { 
     tableName: 'migrations',
-    directory: ${__dirname} /backend/src/database/migrations 
- }
+    directory: '${__dirname} /backend/src/database/migrations'
+  } 
+}
