@@ -8,6 +8,7 @@ const Cadastro = () => {
     const [email, setEmail] = useState(null);
     const [senha, setSenha] = useState(null);
     const [tipoUsuario, setTipoUsuario] = useState("cliente");
+    const [cnpj, setCnpj] = useState("")
     const handleSubmit = (evento) => {
         evento.preventDefault();
 
@@ -30,7 +31,9 @@ const Cadastro = () => {
                     <Input value={nome} label="Nome completo" type="text" onChange={(evento) => setNome(evento.target.value)} />
                     <Input value={email} label="Email" type="email" onChange={(evento) => setEmail(evento.target.value)} />
                     <Input value={senha} label="Senha" type="password" onChange={(evento) => setSenha(evento.target.value)} />
-                    
+                    {tipoUsuario === "restaurante" && (
+                        <Input value={cnpj} label="CNPJ" type="text" onChange={(evento) => setCnpj(evento.target.value)} />
+                    )}
                     <Button text="Criar Conta" />
                     
                     <a href="#" className="hover:underline text-[#000000]/70 text-[16px] text-center no-underline mt-2">

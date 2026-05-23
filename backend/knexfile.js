@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 module.exports = {
   client: 'mysql',
   connection: {
@@ -11,6 +12,6 @@ module.exports = {
   useNullAsDefault: true,
   migrations: { 
     tableName: 'migrations',
-    directory: '${__dirname} /backend/src/database/migrations'
+    directory: './src/database/migrations' // correção: caminh direto da pasta backend
   } 
-}
+};

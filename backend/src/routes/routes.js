@@ -5,3 +5,9 @@ const userController = require('../controller/userController');
 router.post('/login', userController.login);
 
 module.exports = router;
+
+//const bcrypt = require('bcrypt');    testa a senha,gerando um hash
+//router.get('/gerar-senha-teste', async (req, res) => {
+   // const hash = await bcrypt.hash('123', 10);
+   // res.send(hash);
+//});
