@@ -4,10 +4,23 @@ const userController = require('../controller/userController');
 // const auth = require('../middleware/auth'); // O auth está na branch feat-rota-autenticaco
 router.post('/login', userController.login);
 
-module.exports = router;
+const bcrypt = require('bcrypt');
+const db = require('../database/exports');
 
-//const bcrypt = require('bcrypt');    testa a senha,gerando um hash
-//router.get('/gerar-senha-teste', async (req, res) => {
-   // const hash = await bcrypt.hash('123', 10);
-   // res.send(hash);
+//router.post('/cadastrar-teste', async (req, res) => {
+  //  try {
+      //  const { nome, email, senha } = req.body;
+       // const hash = await bcrypt.hash(senha, 10);
+        //await db('usuarios').insert({
+          //  nome,
+            //email,
+            //senha: hash,
+            //tipoUsuario: 'cliente'
+        //});
+        //res.json({ message: 'Usuário cadastrado com sucesso!' });
+    //} catch (error) {
+    //    res.status(500).json({ error: error.message });
+    //}
 //});
+
+module.exports = router;
