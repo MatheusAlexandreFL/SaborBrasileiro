@@ -56,13 +56,13 @@ export const RESTAURANTS = [
 ];
 
 export const DISHES = [
-  {
+{
     id: 1,
-    name: "Salmão com risoto de limão siciliano",
+    name: "Risoto de Cogumelos Trufado",
     rating: 4.9,
-    restaurant: "Verde & Mar",
-    categoryKey: "saudavel",
-    image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500&auto=format&fit=crop&q=60"
+    restaurant: "Cantina Bella Italia",
+    categoryKey: "massas",
+    image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=60"
   },
   {
     id: 2,
@@ -95,6 +95,44 @@ export const DISHES = [
     restaurant: "Doce Suspiro",
     categoryKey: "sobremesas",
     image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&auto=format&fit=crop&q=60"
+  },
+  
+  // cadastrei pratos novos na cantina bela talia pra simular remondação de prato do mesmo restaurante na pagina de prato
+  {
+    id: 6,
+    name: "Lasagna della Nonna de Bolonha",
+    rating: 4.8,
+    restaurant: "Cantina Bella Italia",
+    categoryKey: "massas",
+    description: "Camadas de massa fresca intercaladas com um rico ragu de carne bovina e suína, molho bechamel cremoso e uma generosa cobertura de queijo gratinado.",
+    image: "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=500&auto=format&fit=crop&q=60"
+  },
+  {
+    id: 7,
+    name: "Fettuccine ao Molho de Trufas Pretas",
+    rating: 5.0,
+    restaurant: "Cantina Bella Italia",
+    categoryKey: "massas",
+    description: "Fettuccine artesanal servido com um luxuoso molho de trufas pretas, creme de leite fresco e finalizado com lascas de parmesão envelhecido.",
+    image: "https://images.unsplash.com/photo-1645112411341-6c4fd023714a?w=500&auto=format&fit=crop&q=60"
+  },
+  {
+    id: 8,
+    name: "Bruschetta Tradicional de Pomodoro",
+    rating: 4.7,
+    restaurant: "Cantina Bella Italia",
+    categoryKey: "massas",
+    description: "Pão italiano crocante coberto com uma mistura fresca de tomates maduros, manjericão, alho e azeite de oliva extra virgem.",
+    image: "https://images.unsplash.com/photo-1572656631137-7935297eff55?w=500&auto=format&fit=crop&q=60"
+  },
+  {
+    id: 9,
+    name: "Panna Cotta com Calda de Framboesa",
+    rating: 4.9,
+    restaurant: "Cantina Bella Italia",
+    categoryKey: "sobremesas",
+    description: "Panna Cotta cremosa servida com uma calda saborosa de framboesas frescas.",
+    image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=500&auto=format&fit=crop&q=60"
   }
 ];
 
@@ -109,4 +147,36 @@ export const HERO_COLLAGE = [
   "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=300&auto=format&fit=crop&q=80",
   "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=300&auto=format&fit=crop&q=80",
   "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=300&auto=format&fit=crop&q=80"
+];
+
+// lista simulando comentarios   
+export const REVIEWS = [
+  {
+    id: 1,
+    nome: "Tony Portela",
+    iniciais: "TP",
+    nota: 5.0,
+    texto: "O Risoto estava perfeito, veio no ponto certo e o sabor estava divino!"
+  },
+  {
+    id: 2,
+    nome: "Ana Beatriz",
+    iniciais: "AB",
+    nota: 4.5,
+    texto: "top"
+  },
+  {
+    id: 3,
+    nome: "Matheus Alex",
+    iniciais: "MA",
+    nota: 5.0,
+    texto: "bom"
+  },
+  {
+    id: 4,
+    nome: "Daniel Brito",
+    iniciais: "DB",
+    nota: 4.0,
+    texto: "topp"
+  }
 ];
