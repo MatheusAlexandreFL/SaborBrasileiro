@@ -1,26 +1,36 @@
-const express = require('express');
-const router = express.Router();
-const userController = require('../controller/userController');
-// const auth = require('../middleware/auth'); // O auth está na branch feat-rota-autenticaco
-router.post('/login', userController.login);
 
+const express = require('express');
+const router = express.Router(); //nao esquecer de exportar o router no final do arquivo
+const userController = require('../controller/userController');
 const bcrypt = require('bcrypt');
 const db = require('../database/exports');
 
-//router.post('/cadastrar-teste', async (req, res) => {
-  //  try {
-      //  const { nome, email, senha } = req.body;
-       // const hash = await bcrypt.hash(senha, 10);
-        //await db('usuarios').insert({
-          //  nome,
-            //email,
-            //senha: hash,
-            //tipoUsuario: 'cliente'
-        //});
-        //res.json({ message: 'Usuário cadastrado com sucesso!' });
-    //} catch (error) {
-    //    res.status(500).json({ error: error.message });
-    //}
-//});
+//rota de Login
+router.post('/login', userController.login);
+
+// rota de cadastrar teste (campos novos)
+//recebe os dados do Cadastro.jsx e lida com a regra de cliente e restaurante
+router.post('/cadastrar-teste', async (req, res) => {
+    try {
+        const { nome, email, senha, cpf, tipoUsuario, cnpj } = req.body;
+        //criptografia da senha antes de salvar no banco
+        const hash = await bcrypt.hash(senha, 10);
+        
+        //insere na tabela usuarios 
+        await db('usuarios').insert({
+            nome,
+            email,
+            cpf,          
+            senha: hash,
+            tipoUsuario,  
+            cnpj          
+        });
+        //sucesso
+        res.json({ message: 'Usuário cadastrado com sucesso.' });
+    } catch (error) {
+        //falha, envia mensagem de erro para o front-end para exibir para o usuário
+        res.status(500).json({ error: error.message });
+    }
+});
 
 module.exports = router;
