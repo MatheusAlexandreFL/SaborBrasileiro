@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controller/userController');
-// const auth = require('../middleware/auth'); // O auth está na branch feat-rota-autenticaco
+const pratoController = require('../controller/pratoController');
+const autenticacao = require('../middleware/auth');
 router.post('/login', userController.login);
-
-const bcrypt = require('bcrypt');
-const db = require('../database/exports');
+router.post('/cadastrar-prato', autenticacao, pratoController.cadastrar_prato);
+router.put('/atualizar-prato/:id', autenticacao, pratoController.atualizar_prato);
+router.delete('/deletar-prato/:id', autenticacao, pratoController.deletar_prato);
+router.get('/listar-pratos', pratoController.listar_pratos);
+router.get('/buscar-prato/:id', pratoController.buscar_prato);
+//const bcrypt = require('bcrypt');
+//const db = require('../database/exports');
 
 //router.post('/cadastrar-teste', async (req, res) => {
   //  try {

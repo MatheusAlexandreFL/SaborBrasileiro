@@ -23,3 +23,4 @@ async function login(email, senha){
 module.exports = {
     login,
 };
+

@@ -12,10 +12,6 @@ app.use(routes);
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
-app.get('/login', (req, res) => {
-    res.send('Login Page');
-});
-
 app.listen(port, host, () => {
     console.log(`Server is running on http://${host}:${port}`);
 });
