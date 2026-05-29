@@ -26,7 +26,9 @@ const Login = () => {
         });
 
         const token = resposta.data.token;
+        const fotoPerfil = resposta.data.foto_perfil;
         localStorage.setItem("token", token);
+        localStorage.setItem("foto_perfil", fotoPerfil || "");
         navigate("/home");
         
       } catch (error) {

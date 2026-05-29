@@ -20,7 +20,7 @@ async function login(email, senha) {
        process.env.SECRET_KEY,
        { expiresIn: '1h' }
    );
-   return token;
+   return { token, foto_perfil: usuario.foto_perfil };
 }
 
 async function getPerfil(userId) {

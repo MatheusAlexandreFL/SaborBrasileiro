@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "http://localhost:5000";
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -49,6 +49,7 @@ const Perfil = () => {
       setFotoPerfil(data.foto_perfil || "");
       setCnpj(data.cnpj || "");
       setTipoUsuario(data.tipoUsuario || "cliente");
+      localStorage.setItem("foto_perfil", data.foto_perfil || "");
     } catch {
       localStorage.removeItem("token");
       navigate("/login");
@@ -94,6 +95,7 @@ const Perfil = () => {
       if (!response.ok) throw new Error(result.error);
 
       setPerfil(result);
+      localStorage.setItem("foto_perfil", result.foto_perfil || "");
       setMensagem({ tipo: "sucesso", texto: "Perfil atualizado com sucesso!" });
     } catch (error) {
       setMensagem({ tipo: "erro", texto: error.message || "Erro ao salvar perfil" });
@@ -172,7 +174,7 @@ const Perfil = () => {
 
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black">
-      <Navbar onMenuClick={() => { }} />
+      <Navbar onMenuClick={() => { }} userPhoto={fotoPerfil} />
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-6 py-10 flex flex-col gap-8">
         {/* Header */}

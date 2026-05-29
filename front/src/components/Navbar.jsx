@@ -1,6 +1,20 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 
-const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick }) => {
+const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userPhoto }) => {
+  const defaultPhoto = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80";
+  const [photo, setPhoto] = useState(userPhoto || localStorage.getItem("foto_perfil") || defaultPhoto);
+
+  useEffect(() => {
+    if (userPhoto !== undefined) {
+      setPhoto(userPhoto || defaultPhoto);
+    } else {
+      const stored = localStorage.getItem("foto_perfil");
+      if (stored) {
+        setPhoto(stored);
+      }
+    }
+  }, [userPhoto]);
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-black/10 px-4 py-3 md:px-6 md:py-4 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 transition-all duration-300">
 
@@ -38,7 +52,7 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick }) => 
         <div className="flex md:hidden items-center gap-2">
           <div className="relative group cursor-pointer flex items-center gap-1 p-1 rounded-full hover:bg-black/5 transition-all">
             <img
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80"
+              src={photo}
               alt="Foto do usuário"
               className="w-[32px] h-[32px] rounded-full object-cover border border-[#C13D33]/20"
             />
@@ -47,7 +61,7 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick }) => 
             </svg>
 
 
-            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 hidden group-hover:block z-50">
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 hidden group-hover:block z-50 before:content-[''] before:absolute before:-top-2 before:left-0 before:w-full before:h-2">
               <Link to="/perfil" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
                 Meu Perfil
               </Link>
@@ -96,7 +110,7 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick }) => 
       <div className="hidden md:flex items-center gap-2">
         <div className="relative group cursor-pointer flex items-center gap-1.5 p-1 rounded-full hover:bg-black/5 transition-all">
           <img
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80"
+            src={photo}
             alt="Foto do usuário"
             className="w-[36px] h-[36px] rounded-full object-cover border border-[#C13D33]/20"
           />
@@ -105,7 +119,7 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick }) => 
           </svg>
 
 
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 hidden group-hover:block z-50">
+          <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 hidden group-hover:block z-50 before:content-[''] before:absolute before:-top-2 before:left-0 before:w-full before:h-2">
             <Link to="/perfil" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
               Meu Perfil
             </Link>
