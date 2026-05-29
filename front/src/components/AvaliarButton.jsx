@@ -30,7 +30,7 @@ const AvaliarButton = ({ tipo = "prato", nomeItem, onSubmit }) => {
       <button
         type="button"
         onClick={() => setIsModalOpen(true)}
-        className="w-full max-w-[320px] h-[44px] bg-[#C13D33] text-[#ffffff] text-[15px] font-bold rounded-[8px] border-none outline-none cursor-pointer flex items-center justify-center hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 mx-auto"
+        className="w-full h-[48px] bg-[#C13D33] text-[#ffffff] text-[13px] font-bold rounded-[8px] border-none outline-none cursor-pointer flex items-center justify-center hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 uppercase tracking-widest"
       >
         {textoBotao}
       </button>
