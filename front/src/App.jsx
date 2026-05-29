@@ -1,14 +1,19 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import Home from './pages/Home'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import './index.css';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Cadastro from './pages/Cadastro';
 const App = () => {
-    return (
+  return (
     <BrowserRouter>
-        <Routes>
-            <Route path="/home" element={<Home />} />
-        </Routes>
+      <Routes>
+        <Route path='/' element={<Home />} />
+        <Route path='/home' element={<Home />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/cadastro' element={<Cadastro />} />
+      </Routes>
     </BrowserRouter>
-    )
-}
+  );
+};
 
-export default App
+export default App;

@@ -1,44 +1,75 @@
-const RestaurantCard = ({
-  imageUrl,
-  location,
-  rank,
-  rating,
-  title,
-  type,
-}) => {
+const RestaurantCard = ({ rank, image, name, rating, category, location }) => {
   return (
-    <article className="w-[260px] overflow-hidden rounded-xl border border-zinc-400 bg-white shadow-[0_3px_8px_rgba(0,0,0,0.35)] transition duration-300 ease-out hover:-translate-y-1 hover:cursor-pointer hover:shadow-[0_10px_22px_rgba(0,0,0,0.28)]">
-      <div className="relative h-[230px] overflow-hidden rounded-b-xl">
+    <div className="flex flex-col bg-white rounded-[19px] overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg group cursor-pointer w-full">
+
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[15px] bg-black/5">
         <img
-          src={imageUrl}
-          alt={title}
-          className="h-full w-full object-cover transition duration-500 ease-out hover:scale-105"
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <span className="absolute left-5 top-7 grid size-10 place-items-center rounded-full bg-[#e4aa43] font-notoserif text-sm font-bold text-black shadow-md">
-          {rank}
-        </span>
+
+
+        {rank && (
+          <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-[#E7CC9F] text-[#4A3C24] font-bold flex items-center justify-center text-sm shadow-md border border-[#F8EDDB]/50">
+            {rank}
+          </div>
+        )}
       </div>
 
-      <div className="space-y-5 px-4 pb-8 pt-4">
-        <h2 className="font-notoserif text-lg font-bold leading-snug text-black">{title}</h2>
 
-        <div className="flex items-center gap-1.5 text-sm font-bold text-black">
-          <span className="text-2xl leading-none text-amber-400" aria-hidden="true">
-            ★
-          </span>
-          <span>{rating}</span>
+      <div className="pt-4 pb-2 px-1 flex flex-col gap-1">
+        <h3 className="font-serif text-[18px] font-extrabold text-black tracking-tight leading-tight group-hover:text-[#C13D33] transition-colors">
+          {name}
+        </h3>
+
+
+        <div className="flex items-center gap-1.5 text-[14px] font-bold text-black/80 mt-1">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-4 h-4 text-amber-500"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <span>{rating.toFixed(1)}</span>
         </div>
 
-        <p className="font-notoserif text-base leading-tight text-black">{type}</p>
 
-        <div className="relative font-notoserif text-base leading-tight text-black">
-          <span className="absolute left-[-4px] top-1/2 -translate-y-1/2 text-xl leading-none" aria-hidden="true">
-            📍
-          </span>
-          <span className="block pl-6">{location}</span>
+        <p className="text-[14px] text-black/50 font-medium">
+          {category}
+        </p>
+
+
+        <div className="flex items-center gap-1 text-[13px] text-black/50 font-medium mt-1">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-4 h-4 text-black/40"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+            />
+          </svg>
+          <span>{location}</span>
         </div>
       </div>
-    </article>
+    </div>
   );
 };
 

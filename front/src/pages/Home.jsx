@@ -1,30 +1,17 @@
-import SaborHeader from "../components/SaborHeader";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
 import RestaurantCard from "../components/RestaurantCard";
 import DishCard from "../components/DishCard";
+import { CATEGORIES, RESTAURANTS, DISHES, HERO_COLLAGE } from "../mockData";
 
 const Home = () => {
-  return (
-    <div className="min-h-screen bg-white">
-      <SaborHeader />
-      <main className="flex flex-wrap gap-6 px-4 py-8 sm:px-6 xl:px-8">
-        <RestaurantCard
-          imageUrl="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80"
-          location="Rio de Janeiro, RJ"
-          rank={1}
-          rating="4,9"
-          title="Origem Cozinha Natural"
-          type="Saudável - Contemporânea"
-        />
-        <DishCard
-          imageUrl="https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=700&q=80"
-          rating="4,9"
-          restaurantName="Verde & Mar"
-          title="Salmão com risoto de limão siciliano"
-        />
-      </main>
+    return(
+        <div>
+      <h1></h1>
     </div>
   );
 };
 
 export default Home;
-

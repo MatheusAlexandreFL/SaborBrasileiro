@@ -1,42 +1,59 @@
-const DishCard = ({
-  imageUrl,
-  restaurantName,
-  rating,
-  title,
-}) => {
+const DishCard = ({ image, name, rating, restaurant }) => {
   return (
-    <article className="w-[260px] overflow-hidden rounded-xl border border-zinc-400 bg-white shadow-[0_3px_8px_rgba(0,0,0,0.35)] transition duration-300 ease-out hover:-translate-y-1 hover:cursor-pointer hover:shadow-[0_10px_22px_rgba(0,0,0,0.28)]">
-      <div className="relative h-[230px] overflow-hidden rounded-b-xl">
+    <div className="flex flex-col bg-white rounded-[19px] overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg group cursor-pointer w-full">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[15px] bg-black/5">
         <img
-          src={imageUrl}
-          alt={title}
-          className="h-full w-full object-cover transition duration-500 ease-out hover:scale-105"
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
-        <div className="absolute left-5 top-7 flex h-10 items-center gap-2 rounded-md bg-white px-3 font-notoserif text-sm font-bold text-black shadow-sm">
-          <span className="text-2xl leading-none text-amber-400" aria-hidden="true">
-            ★
-          </span>
-          <span>{rating}</span>
+
+        <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md border border-black/5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-3.5 h-3.5 text-amber-500"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <span className="text-[12px] font-bold text-black">{rating.toFixed(1)}</span>
         </div>
       </div>
 
-      <div className="space-y-5 px-4 pb-8 pt-4">
-        <h2 className="font-notoserif text-lg font-bold leading-snug text-black">{title}</h2>
 
-        <p className="font-notoserif text-base leading-tight text-black">{restaurantName}</p>
+      <div className="pt-4 pb-2 px-1 flex flex-col gap-1.5 flex-1 justify-between">
+        <div className="flex flex-col gap-1">
+          <h3 className="font-serif text-[18px] font-extrabold text-black tracking-tight leading-tight group-hover:text-[#C13D33] transition-colors line-clamp-2">
+            {name}
+          </h3>
 
-        <a
-          href="#restaurante"
-          className="flex items-center justify-between pt-4 font-notoserif text-base font-bold text-[#e4a044] transition hover:cursor-pointer hover:text-[#bf7b21]"
-        >
+
+          <p className="text-[14px] text-black/50 font-medium">
+            {restaurant}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-[14px] font-bold text-[#C13D33] mt-3 group-hover:opacity-90">
           <span>Ver restaurante</span>
-          <span className="text-2xl leading-none" aria-hidden="true">
-            →
-          </span>
-        </a>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2.5}
+            stroke="currentColor"
+            className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
       </div>
-    </article>
+    </div>
   );
 };
 
