@@ -2,28 +2,31 @@ import { useState } from "react";
 import Button from "../components/button";
 import Input from "../components/input";
 import TipoUsuarioSeletor from "../components/tipoUsuarioSeletor";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 import imgPrato1 from "../assets/prato1Login.avif";
 import imgPrato2 from "../assets/prato2Login.avif";
 import imgFundoLogin from "../assets/fundoLogin.avif";
 
 const Cadastro = () => {
-<<<<<<< Updated upstream
-    const [nome, setNome] = useState(null);
-    const [email, setEmail] = useState(null);
-    const [senha, setSenha] = useState(null);
-=======
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
->>>>>>> Stashed changes
     const [tipoUsuario, setTipoUsuario] = useState("cliente");
-    const [cnpj, setCnpj] = useState("")
-    const handleSubmit = (evento) => {
-        evento.preventDefault();
+    const [cnpj, setCnpj] = useState("");
 
-<<<<<<< Updated upstream
-=======
+    const [erro, setErro] = useState("");
+    const [sucesso, setSucesso] = useState("");
+    const [carregando, setCarregando] = useState(false);
+    const navigate = useNavigate();
+
+    const handleSubmit = async (evento) => {
+        evento.preventDefault();
+        setErro("");
+        setSucesso("");
+        setCarregando(true);
+
         try {
             const dadosCadastro = {
                 nome,
@@ -51,40 +54,14 @@ const Cadastro = () => {
         finally {
             setCarregando(false);
         }
->>>>>>> Stashed changes
     };
-    return(
-     // Container principal: Garante altura total da tela, centraliza o card e aplica o degradê de fundo
-        <div className="min-h-screen bg-linear-to-b from-[#E7CC9F] via-[#F8EDDB] 50% to-[#F8EDDB] flex items-center justify-center">
 
-<<<<<<< Updated upstream
-            {/* Card de cadastro: Define a estrutura do formulário, com espaçamento interno e bordas arredondadas */}
-            <form onSubmit={handleSubmit} className="bg-[#ffffff] w-full max-w-[400px] flex flex-col rounded-[19px] px-[48px] pt-[70px] pb-[48px] justify-center">
-                <h1 className="text-[#C13D33] text-[25px] text-center font-extrabold">
-                    Sabor Brasileiro
-                </h1>
-
-                {/* reaproveitando o componente de tipoUsuarioSeletor.jsx */}
-                <TipoUsuarioSeletor tipoUsuario={tipoUsuario} setTipoUsuario={setTipoUsuario} />
-
-                <div className="mt-[30px] flex flex-col gap-[30px]">
-                    {/* reaproveitando componentes de input.jsx */}
-                    <Input value={nome} label="Nome completo" type="text" onChange={(evento) => setNome(evento.target.value)} />
-                    <Input value={email} label="Email" type="email" onChange={(evento) => setEmail(evento.target.value)} />
-                    <Input value={senha} label="Senha" type="password" onChange={(evento) => setSenha(evento.target.value)} />
-
-                    <Button text="Criar Conta" />
-                    
-                    <a href="#" className="hover:underline text-[#000000]/70 text-[16px] text-center no-underline mt-2">
-                        Já tem uma conta? <span className="text-[#C13D33] font-bold">Entrar</span>
-                    </a>
-=======
     return (
-        <div className="min-h-screen  bg-[#F8EDDB]/30 flex items-center justify-center p-4 md:p-8 overflow-hidden">
+        <div className="min-h-screen bg-[#F8EDDB]/30 flex items-center justify-center p-4 md:p-8 overflow-hidden">
 
             <div className="bg-white w-full max-w-[950px] min-h-[600px] rounded-[32px] shadow-2xl flex p-3 md:p-4">
                 
-                {/* esquerda : form */}
+                {/* METADE ESQUERDA: Formulário */}
                 <div className="w-full md:w-1/2 flex flex-col justify-center px-4 md:px-12 py-6 relative z-20">
                     
                     <div className="max-w-[340px] w-full mx-auto">
@@ -135,10 +112,9 @@ const Cadastro = () => {
 
                         </form>
                     </div>
->>>>>>> Stashed changes
                 </div>
 
-                {/* direita: card de imagens */}
+                {/* 🎯 METADE DIREITA: Card de imagens */}
                 <div className="hidden md:block md:w-1/2 relative rounded-[24px] overflow-hidden bg-[#FFF9F0]">
                     
                     {/* div Vermelha que ocupa 50% da direita */}
@@ -177,4 +153,3 @@ const Cadastro = () => {
     )
 }
 export default Cadastro;
-

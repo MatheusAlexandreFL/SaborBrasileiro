@@ -1,9 +1,5 @@
 import { useState } from "react";
 import Button from "../components/button";
-<<<<<<< Updated upstream
-import Input from "../components/input";
-//import axios from "axios"; 
-=======
 import Input from "../components/input"; 
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -11,16 +7,10 @@ import imgPrato1 from "../assets/prato1Login.avif";
 import imgPrato2 from "../assets/prato2Login.avif";
 import imgFundoLogin from "../assets/fundoLogin.avif";
 
->>>>>>> Stashed changes
 const Login = () => {
-    const [email, setEmail] = useState(null);
-    const [senha, setSenha] = useState(null);
+    const [email, setEmail] = useState("");
+    const [senha, setSenha] = useState("");
 
-<<<<<<< Updated upstream
-    const handleSubmit = (evento) => {
-    evento.preventDefault();
-  };
-=======
     const [erro, setErro] = useState("");
     const [carregando, setCarregando] = useState(false);
     const navigate = useNavigate();
@@ -52,21 +42,12 @@ const Login = () => {
         setCarregando(false);
       }
     }
->>>>>>> Stashed changes
 
     return(
-        <div className="min-h-screen  bg-[#F8EDDB]/30 flex items-center justify-center p-4 md:p-8 overflow-hidden">
+        <div className="min-h-screen bg-[#F8EDDB]/30 flex items-center justify-center p-4 md:p-8 overflow-hidden">
       
             <div className="bg-white w-full max-w-[950px] min-h-[550px] rounded-[32px] shadow-2xl flex p-3 md:p-4">
 
-<<<<<<< Updated upstream
-                {/* bloco que controla os espaçamentos do Figma */}
-                <div className="mt-[40px] flex flex-col gap-[40px]">
-
-                <Input value={email} label="Email" type="email" onChange={(evento) => setEmail(evento.target.value)} />
-                <Input value={senha} label="Senha" type="password" onChange={(evento) => setSenha(evento.target.value)} />
-                <Button text="Login"/>
-=======
                 {/* METADE ESQUERDA: Formulário */}
                 <div className="w-full md:w-1/2 flex flex-col justify-center px-6 md:px-12 py-8 relative z-20">
                     
@@ -91,7 +72,6 @@ const Login = () => {
                                 {erro}
                               </span>
                             )}
->>>>>>> Stashed changes
 
                             <div className="-mt-2">
                                 <Button text={carregando ? "Entrando..." : "Login"} />
@@ -110,7 +90,6 @@ const Login = () => {
 
                         </form>
                     </div>
-
 
                 </div>
 
@@ -159,4 +138,3 @@ const Login = () => {
     )
 }
 export default Login;
-
