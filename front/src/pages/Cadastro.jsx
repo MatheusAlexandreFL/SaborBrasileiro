@@ -150,6 +150,7 @@ const Cadastro = () => {
 
             </div>
         </div>
-    )
-}
+    );
+};
+
 export default Cadastro;
