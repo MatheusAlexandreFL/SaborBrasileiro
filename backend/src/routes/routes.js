@@ -12,7 +12,7 @@ router.post('/login', userController.login);
 //recebe os dados do Cadastro.jsx e lida com a regra de cliente e restaurante
 router.post('/cadastrar-teste', async (req, res) => {
     try {
-        const { nome, email, senha, cpf, tipoUsuario, cnpj } = req.body;
+        const { nome, email, senha, tipoUsuario, cnpj } = req.body;
         //criptografia da senha antes de salvar no banco
         const hash = await bcrypt.hash(senha, 10);
         
@@ -20,7 +20,6 @@ router.post('/cadastrar-teste', async (req, res) => {
         await db('usuarios').insert({
             nome,
             email,
-            cpf,          
             senha: hash,
             tipoUsuario,  
             cnpj          
