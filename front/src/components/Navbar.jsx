@@ -48,7 +48,10 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick }) => 
 
 
             <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 hidden group-hover:block z-50">
-              <Link to="/cadastro" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
+              <Link to="/perfil" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
+                Meu Perfil
+              </Link>
+              <Link to="/cadastro" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
                 Cadastrar restaurante
               </Link>
               <Link to="/login" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
@@ -103,7 +106,10 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick }) => 
 
 
           <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 hidden group-hover:block z-50">
-            <Link to="/cadastro" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
+            <Link to="/perfil" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
+              Meu Perfil
+            </Link>
+            <Link to="/cadastro" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
               Cadastrar restaurante
             </Link>
             <Link to="/login" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
