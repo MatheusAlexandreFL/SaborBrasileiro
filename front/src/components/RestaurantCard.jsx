@@ -70,6 +70,7 @@ const RestaurantCard = ({ rank, image, name, rating, category, location }) => {
         </div>
       </div>
     </div>
+
   );
 };
 

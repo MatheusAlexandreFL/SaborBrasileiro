@@ -6,6 +6,7 @@ import RestaurantCard from "../components/RestaurantCard";
 import DishCard from "../components/DishCard";
 import { CATEGORIES, RESTAURANTS, DISHES, HERO_COLLAGE } from "../mockData";
 
+
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -28,7 +29,7 @@ const Home = () => {
       d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       d.restaurant.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
-  });
+  }).slice(0, 5);
 
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black">

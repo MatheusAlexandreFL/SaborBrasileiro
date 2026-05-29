@@ -61,3 +61,4 @@ const CloseIcon = () => (
 );
 
 export default Sidebar;
+
