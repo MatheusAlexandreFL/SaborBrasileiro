@@ -10,10 +10,7 @@ const App = () => {
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<Home />} />
-<<<<<<< HEAD
-=======
                 <Route path="/home" element={<Home />} />
->>>>>>> feat-tela-prato
                 <Route path="/login" element={<Login />} />
                 <Route path="/cadastro" element={<Cadastro />} />
                 <Route path="/perfil" element={<Perfil />} />
