@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { DISHES, RESTAURANTS } from "../mockData";
 import DishCard from "../components/DishCard";
+import { useToast } from "../context/ToastContext";
 
 const MapPinIcon = () => (
   <svg
@@ -107,6 +108,7 @@ const INITIAL_REVIEWS = [
 const TelaRestaurante = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const toast = useToast();
   const menuRef = useRef(null);
 
   const pratoPadrao = {
@@ -243,7 +245,7 @@ const TelaRestaurante = () => {
   const handleEnviarAvaliacao = (e) => {
     e.preventDefault();
     if (nota === 0) {
-      alert("Por favor, selecione uma nota antes de enviar.");
+      toast.warning("Por favor, selecione uma nota antes de enviar.");
       return;
     }
 
@@ -261,7 +263,7 @@ const TelaRestaurante = () => {
     setComentario("");
     setMostrarTodosComentarios(true);
 
-    alert("Obrigado! Sua avaliação foi adicionada com sucesso.");
+    toast.success("Obrigado! Sua avaliação foi adicionada com sucesso.");
   };
 
   return (

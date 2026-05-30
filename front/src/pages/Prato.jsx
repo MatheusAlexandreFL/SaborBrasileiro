@@ -3,10 +3,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { DISHES, REVIEWS } from "../mockData"; 
 import DishCard from "../components/DishCard";
 import AvaliarButton from "../components/AvaliarButton";
+import { useToast } from "../context/ToastContext";
 
 const Prato = () => {
   const location = useLocation();
   const navigate = useNavigate(); // add para o botão de voltar funcionar
+  const toast = useToast();
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState(false);
   const [listaComentarios, setListaComentarios] = useState(REVIEWS);
 
@@ -66,7 +68,7 @@ const Prato = () => {
     setListaComentarios([novaAvaliacaoVisual, ...listaComentarios]);
     setMostrarTodosComentarios(true);
 
-    alert(`Sucesso! Sua nota ${dadosDaAvaliacao.nota} foi adicionada e a média foi atualizada!`);
+    toast.success(`Sucesso! Sua nota ${dadosDaAvaliacao.nota} foi adicionada e a média foi atualizada!`);
   };
 
   return (
