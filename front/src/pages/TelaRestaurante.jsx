@@ -72,7 +72,7 @@ const TelaRestaurante = () => {
     <main className="min-h-screen bg-white font-notoserif text-black">
       <section className="mx-auto grid w-full max-w-[980px] grid-cols-1 gap-8 px-4 py-8 sm:px-8 md:grid-cols-[minmax(0,1fr)_minmax(330px,0.95fr)] md:gap-6 md:py-12">
         <div className="flex flex-col items-center gap-5">
-          <div className="h-[250px] w-full overflow-hidden rounded-[7px] bg-[#F8EDDB] shadow-sm">
+          <div className="h-[280px] w-full overflow-hidden rounded-[7px] bg-[#F8EDDB] shadow-sm md:h-[310px]">
             <img
               src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900&auto=format&fit=crop&q=85"
               alt="Ambiente interno do restaurante Origem Cozinha Natural"
