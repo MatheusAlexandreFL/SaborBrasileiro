@@ -7,13 +7,15 @@ function autenticacao(req, res, next) {
         if (!authHeader) {
             throw new Error('Token não fornecido');
         }
-        const [, token] = authHeader.split(' ');
-        jwt.verify(token, process.env.SECRET_KEY, (erro, decoded) => {
-            if (erro) {
-                throw new Error('Token inválido' + erro.message);
-            }
-            req.id = decoded.id;
-        });
+        const [tipo, token] = authHeader.split(' ');
+        if (tipo !== 'Bearer' || !token) {
+            throw new Error('Formato do token inválido');
+        }
+
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        req.id = decoded.id;
+        req.usuarioId = decoded.id;
+        req.usuario = decoded;
         next();
     } catch (e) {
         res.status(401).json({ erro: 'Token inválido. ' + e.message });

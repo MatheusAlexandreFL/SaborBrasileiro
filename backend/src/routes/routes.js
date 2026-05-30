@@ -4,12 +4,14 @@ import auth from '../middleware/auth.js';
 import bcrypt from 'bcrypt';
 import db from '../database/exports.js';
 import pratoRoutes from './pratoRoutes.js';
+import restaurantRoutes from './restaurantRoutes.js';
 
 const router = express.Router();
 
 // Rotas públicas
 router.post('/login', userController.login);
 router.use(pratoRoutes);
+router.use(restaurantRoutes);
 
 // Rotas protegidas (requerem autenticação JWT)
 router.get('/perfil', auth, userController.getPerfil);
