@@ -158,6 +158,7 @@ const Perfil = () => {
 
   const handleEncerrarSessao = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("foto_perfil");
     navigate("/login");
   };
 

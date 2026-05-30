@@ -1,10 +1,20 @@
 import {useNavigate} from 'react-router-dom';
+import { RESTAURANTS } from "../mockData";
 const DishCard = ({ image, name, rating, restaurant, hideRating = false, hideLink = false }) => {
   const navigate = useNavigate();
   const handleClique = () => {
     navigate("/prato", { 
       state: { image, name, rating, restaurant } 
     });
+  };
+  const handleVerRestaurante = (e) => {
+    e.stopPropagation();
+    const rest = RESTAURANTS.find((r) => r.name === restaurant);
+    if (rest) {
+      navigate("/restaurante", {
+        state: { id: rest.id, image: rest.image, name: rest.name, rating: rest.rating, category: rest.category, location: rest.location }
+      });
+    }
   };
   return (
     <div onClick={handleClique} className="flex flex-col bg-white rounded-[19px] overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg group cursor-pointer w-full">
@@ -50,7 +60,7 @@ const DishCard = ({ image, name, rating, restaurant, hideRating = false, hideLin
 
         {/* trava condicional apenas para o botao "ver restaurante" */}
         {!hideLink && (
-          <div className="flex items-center gap-1.5 text-[14px] font-bold text-[#C13D33] mt-3 group-hover:opacity-90">
+          <div onClick={handleVerRestaurante} className="flex items-center gap-1.5 text-[14px] font-bold text-[#C13D33] mt-3 group-hover:opacity-90 hover:underline">
             <span>Ver restaurante</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"

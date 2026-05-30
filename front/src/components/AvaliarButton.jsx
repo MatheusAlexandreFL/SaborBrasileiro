@@ -112,7 +112,8 @@ const AvaliarButton = ({ tipo = "prato", nomeItem, onSubmit }) => {
               <button 
                 type="button"
                 onClick={handleEnviar}
-                className="w-full h-[44px] bg-[#C13D33] text-[#ffffff] text-[15px] font-bold rounded-[8px] border-none outline-none cursor-pointer flex items-center justify-center hover:bg-[#a53229] transition-colors"
+                disabled={nota === 0}
+                className={`w-full h-[44px] text-[15px] font-bold rounded-[8px] border-none outline-none flex items-center justify-center transition-colors ${nota === 0 ? 'bg-neutral-300 text-white cursor-not-allowed' : 'bg-[#C13D33] text-[#ffffff] cursor-pointer hover:bg-[#a53229]'}`}
               >
                 Enviar Avaliação
               </button>
