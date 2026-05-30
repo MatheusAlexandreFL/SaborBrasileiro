@@ -1,7 +1,7 @@
-require("dotenv").config();
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const database = require('../database/exports');
+import 'dotenv/config.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import database from '../database/exports.js';
 
 async function login(email, senha) {
    const usuario = await database("usuarios").select("*").where({ email: email }).first();
@@ -84,7 +84,7 @@ async function updateSenha(userId, senhaAtual, novaSenha) {
     return { message: 'Senha alterada com sucesso' };
 }
 
-module.exports = {
+export default {
     login,
     getPerfil,
     updatePerfil,

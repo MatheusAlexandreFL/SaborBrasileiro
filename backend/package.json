@@ -1,4 +1,7 @@
 {
+  "name": "sabor-brasileiro-backend",
+  "version": "1.0.0",
+  "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
@@ -9,5 +12,8 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.22.4",
     "node": "^22.22.3"
+  },
+  "scripts": {
+    "dev": "node src/server.js"
   }
 }

@@ -1,6 +1,16 @@
-const RestaurantCard = ({ rank, image, name, rating, category, location }) => {
+import { useNavigate } from "react-router-dom";
+
+const RestaurantCard = ({ id, rank, image, name, rating, category, location }) => {
+  const navigate = useNavigate();
+
+  const handleClique = () => {
+    navigate("/restaurante", {
+      state: { id, rank, image, name, rating, category, location }
+    });
+  };
+
   return (
-    <div className="flex flex-col bg-white rounded-[19px] overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg group cursor-pointer w-full">
+    <div onClick={handleClique} className="flex flex-col bg-white rounded-[19px] overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg group cursor-pointer w-full">
 
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[15px] bg-black/5">
         <img

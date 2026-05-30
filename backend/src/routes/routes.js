@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import userController from '../controller/userController.js';
+import auth from '../middleware/auth.js';
+import bcrypt from 'bcrypt';
+import db from '../database/exports.js';
+
 const router = express.Router();
-const userController = require('../controller/userController');
-const auth = require('../middleware/auth');
-const bcrypt = require('bcrypt');
-const db = require('../database/exports');
 
 // Rotas públicas
 router.post('/login', userController.login);
@@ -38,4 +39,4 @@ router.post('/cadastrar-teste', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

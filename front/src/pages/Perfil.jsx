@@ -174,7 +174,7 @@ const Perfil = () => {
 
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black">
-      <Navbar onMenuClick={() => { }} userPhoto={fotoPerfil} />
+      <Navbar onMenuClick={() => { }} userPhoto={fotoPerfil} hideSearch={true} hideFilter={true} />
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-6 py-10 flex flex-col gap-8">
         {/* Header */}

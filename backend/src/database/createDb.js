@@ -1,15 +1,15 @@
-require('dotenv').config();
-const mysql = require('mysql2/promise');
+import 'dotenv/config.js';
+import mysql from 'mysql2/promise';
 
 async function createDatabase() {
   const connection = await mysql.createConnection({
-    host: process.env.SERVER_HOST || '127.0.0.1',
-    user: process.env.SERVER_USER || 'root',
-    password: process.env.SERVER_PASSWORD || 'root',
-    port: process.env.SERVER_DB_PORT || 3306
+    host: process.env.SERVER_HOST,
+    user: process.env.SERVER_USER,
+    password: process.env.SERVER_PASSWORD,
+    port: process.env.SERVER_DB_PORT
   });
 
-  const dbName = process.env.SERVER_DATABASE || 'sabor_brasileiro';
+  const dbName = process.env.SERVER_DATABASE;
   await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
   console.log(`Banco de dados '${dbName}' verificado/criado com sucesso.`);
   await connection.end();

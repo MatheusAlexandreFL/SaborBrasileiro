@@ -128,6 +128,7 @@ const Home = () => {
               {filteredRestaurants.map((restaurant, idx) => (
                 <RestaurantCard
                   key={restaurant.id}
+                  id={restaurant.id}
                   rank={idx + 1}
                   image={restaurant.image}
                   name={restaurant.name}

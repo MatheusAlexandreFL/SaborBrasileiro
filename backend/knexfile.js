@@ -1,6 +1,6 @@
-require('dotenv').config();
+import 'dotenv/config.js';
 
-module.exports = {
+export default {
   client: 'mysql2',
   connection: {
     user: process.env.SERVER_USER,
@@ -12,6 +12,6 @@ module.exports = {
   useNullAsDefault: true,
   migrations: { 
     tableName: 'migrations',
-    directory: './src/database/migrations' // correção: caminh direto da pasta backend
+    directory: './src/database/migrations'
   } 
 };

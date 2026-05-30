@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userPhoto }) => {
+const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userPhoto, hideSearch = false, hideFilter = false }) => {
   const defaultPhoto = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80";
   const [photo, setPhoto] = useState(userPhoto || localStorage.getItem("foto_perfil") || defaultPhoto);
 
@@ -77,34 +77,38 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
       </div>
 
 
-      <div className="flex items-center gap-3 w-full md:flex-1 md:max-w-[480px] md:mx-4">
+      {(!hideSearch || !hideFilter) && (
+        <div className="flex items-center gap-3 w-full md:flex-1 md:max-w-[480px] md:mx-4">
+          {!hideSearch && (
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Buscar restaurante ou prato..."
+                value={searchQuery || ""}
+                onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
+                className="w-full h-[40px] pl-10 pr-4 rounded-full border border-black/10 bg-[#F5E6CA]/20 focus:bg-white focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] outline-none text-[14px] transition-all"
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-black/40">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+            </div>
+          )}
 
-        <div className="relative flex-1">
-          <input
-            type="text"
-            placeholder="Buscar restaurante ou prato..."
-            value={searchQuery || ""}
-            onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
-            className="w-full h-[40px] pl-10 pr-4 rounded-full border border-black/10 bg-[#F5E6CA]/20 focus:bg-white focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] outline-none text-[14px] transition-all"
-          />
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-black/40">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </span>
+          {!hideFilter && (
+            <button
+              onClick={onFilterClick}
+              className="h-[40px] px-4 rounded-full border border-black/10 flex items-center gap-2 hover:bg-black/5 active:scale-95 transition-all cursor-pointer text-[14px] font-semibold text-black shrink-0"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-black/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              Filtros
+            </button>
+          )}
         </div>
-
-
-        <button
-          onClick={onFilterClick}
-          className="h-[40px] px-4 rounded-full border border-black/10 flex items-center gap-2 hover:bg-black/5 active:scale-95 transition-all cursor-pointer text-[14px] font-semibold text-black"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-black/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-          </svg>
-          Filtros
-        </button>
-      </div>
+      )}
 
 
       <div className="hidden md:flex items-center gap-2">
