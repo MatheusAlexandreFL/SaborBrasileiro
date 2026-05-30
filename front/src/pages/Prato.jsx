@@ -1,21 +1,25 @@
-import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useState ,useEffect} from "react";
+import { useLocation, useNavigate } from "react-router-dom"; 
 import { DISHES, REVIEWS } from "../mockData"; 
 import DishCard from "../components/DishCard";
 import AvaliarButton from "../components/AvaliarButton";
 
 const Prato = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // add para o botão de voltar funcionar
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState(false);
   const [listaComentarios, setListaComentarios] = useState(REVIEWS);
 
-  //calculo da media geral dos pratos baseado nos comentario de mockData.js(media calculada dinamicamente)
+  // add: a pagina começa do topo 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // calculo da media geral
   const mediaGeralDinamica = listaComentarios.length > 0 
     ? listaComentarios.reduce((soma, comentario) => soma + comentario.nota, 0) / listaComentarios.length 
     : 0;
 
-
-    //se nãovier nada clicando em prato la na home, va usar esse prato padrao
   const pratoPadrao = {
     name: "Risoto de Cogumelos Trufado",
     price: "R$ 89,90",
@@ -54,7 +58,6 @@ const Prato = () => {
       texto: dadosDaAvaliacao.comentario
     };
 
-    // adiciona a nota nova na lista e calcula a media automaticamene
     setListaComentarios([novaAvaliacaoVisual, ...listaComentarios]);
     setMostrarTodosComentarios(true);
 
@@ -62,31 +65,64 @@ const Prato = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black relative">
+    <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black p-6 md:p-10">
       
-      <div className="w-full h-[400px] relative overflow-hidden">
-        <img src={pratoPrincipal.image} alt={pratoPrincipal.name} className="w-full h-full object-cover" />
-        <button className="absolute top-6 left-6 bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-black/5 cursor-pointer border-none outline-none">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+      {/* correção: botão de Voltar agora fora da imagem*/}
+      <div className="max-w-[1000px] w-full mx-auto mb-6">
+        <button 
+          onClick={() => navigate("/")} 
+          className="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-black/5 cursor-pointer border-none outline-none"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
         </button>
       </div>
 
-      <main className="flex-1 max-w-[850px] w-full mx-auto px-6 relative z-10 -mt-20 mb-12">
-        <div className="bg-white rounded-[24px] shadow-xl p-8 md:p-12 flex flex-col gap-8">
+      <main className="flex-1 max-w-[1000px] w-full mx-auto flex flex-col gap-8 mb-12">
+        
+        {/* add: posicionamento lado a lado( foto na esquerda e infos na direita) */}
+        <div className="bg-white rounded-[24px] shadow-xl p-8 flex flex-col md:flex-row gap-8 lg:gap-12">
           
-          <div className="flex flex-col gap-2">
-            <span className="bg-[#4A3C24]/10 text-[#4A3C24] font-bold text-[12px] px-3 py-1 rounded-full w-fit">Receita Assinatura</span>
-            <h1 className="font-serif text-[32px] md:text-[38px] font-extrabold text-black">{pratoPrincipal.name}</h1>
-            <span className="text-[#C13D33] text-[24px] font-extrabold">{pratoPrincipal.price}</span>
+          {/* add: imagem na esquerda */}
+          <div className="w-full md:w-1/2 shrink-0 self-center">
+            <img 
+              src={pratoPrincipal.image} 
+              alt={pratoPrincipal.name} 
+              className="w-full h-auto object-cover rounded-[16px] max-h-[450px]" 
+            />
           </div>
+          {/* direita: informações */}
+          <div className="w-full md:w-1/2 flex flex-col justify-center gap-6">
+            <div className="flex flex-col items-center md:items-start text-center md:text-left gap-2">
+              <span className="bg-[#4A3C24]/10 text-[#4A3C24] font-bold text-[12px] px-3 py-1 rounded-full w-fit">Receita Assinatura</span>
+              <h1 className="font-serif text-[32px] md:text-[38px] font-extrabold text-black leading-tight">{pratoPrincipal.name}</h1>
+              <span className="text-[#C13D33] text-[24px] font-extrabold">{pratoPrincipal.price}</span>
+            </div>
 
-          <div className="flex flex-col gap-2 border-b border-black/5 pb-6">
-            <h2 className="text-[16px] font-extrabold uppercase tracking-wider">Descrição</h2>
-            <p className="text-[15px] text-black/70 leading-relaxed">{pratoPrincipal.description}</p>
+            <div className="flex flex-col gap-2 border-t border-black/5 pt-4">
+              <h2 className="text-[16px] font-extrabold uppercase tracking-wider">Descrição</h2>
+              <p className="text-[15px] text-black/70 leading-relaxed">{pratoPrincipal.description}</p>
+            </div>
+
+            {/* nova posição para o botão de avaliação */}
+            <div className="mt-4 flex justify-start">
+              <div className="w-full sm:w-[320px]">
+                <AvaliarButton 
+                  tipo="prato" 
+                  nomeItem={pratoPrincipal.name} 
+                  onSubmit={handleSalvarAvaliacao} 
+                />
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div className="flex flex-col gap-4 border-b border-black/5 pb-8">
-            <div className="flex justify-between items-center">
+        {/* add: avaliações e recomendações (elementos originais) */}
+        <div className="bg-white rounded-[24px] shadow-xl p-8 flex flex-col gap-10">
+          
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-center border-b border-black/5 pb-4">
               <div>
                 <h2 className="text-[18px] font-extrabold">Avaliações</h2>
                 <p className="text-[13px] text-black/40 font-bold uppercase">
@@ -94,7 +130,6 @@ const Prato = () => {
                 </p>
               </div>
               <div className="bg-white px-3 py-1.5 rounded-full flex items-center gap-1 shadow-xs border border-black/5">
-                {/* apicando a media automatica com o toFixed(1) */}
                 <span className="text-[15px] font-bold text-amber-500">⭐ <span className="text-black">{mediaGeralDinamica.toFixed(1)}</span></span>
               </div>
             </div>
@@ -129,15 +164,7 @@ const Prato = () => {
             )}
           </div>
 
-          <div className="w-full flex justify-center border-b border-black/5 pb-8">
-            <AvaliarButton 
-              tipo="prato" 
-              nomeItem={pratoPrincipal.name} 
-              onSubmit={handleSalvarAvaliacao} 
-            />
-          </div>
-
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 pt-4 border-t border-black/5">
             <h2 className="text-[18px] font-extrabold">Recomendações</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               {recomendacoes.map((dish) => (
@@ -145,6 +172,7 @@ const Prato = () => {
               ))}
             </div>
           </div>
+          
         </div>
       </main>
     </div>

@@ -1,3 +1,15 @@
+<<<<<<< HEAD
+const Home = () => {
+    return(
+    <div className="h-screen flex items-center justify-center bg-red-500">
+      <h1 className="text-white text-4xl font-bold">
+        Tailwind funcionando
+      </h1>
+    </div>
+    )
+}
+export default Home;
+=======
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -5,6 +17,7 @@ import Sidebar from "../components/Sidebar";
 import RestaurantCard from "../components/RestaurantCard";
 import DishCard from "../components/DishCard";
 import { CATEGORIES, RESTAURANTS, DISHES, HERO_COLLAGE } from "../mockData";
+>>>>>>> feat-tela-prato
 
 
 const Home = () => {

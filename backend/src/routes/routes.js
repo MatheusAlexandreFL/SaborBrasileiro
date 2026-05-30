@@ -14,27 +14,28 @@ router.get('/perfil', auth, userController.getPerfil);
 router.put('/perfil', auth, userController.updatePerfil);
 router.put('/perfil/senha', auth, userController.updateSenha);
 
-// rota de cadastrar teste (campos novos)
-//recebe os dados do Cadastro.jsx e lida com a regra de cliente e restaurante
+// Rota de Cadastrar Teste (campos novos)
+// Recebe os dados do Cadastro.jsx e lida com a regra de cliente e restaurante
 router.post('/cadastrar-teste', async (req, res) => {
     try {
-        const { nome, email, senha, cpf, tipoUsuario, cnpj } = req.body;
-        //criptografia da senha antes de salvar no banco
+        const { nome, email, senha, tipoUsuario, cnpj } = req.body;
+        
+        // Criptografia da senha antes de salvar no banco
         const hash = await bcrypt.hash(senha, 10);
         
-        //insere na tabela usuarios 
+        // Insere na tabela usuarios 
         await db('usuarios').insert({
             nome,
             email,
-            cpf,          
             senha: hash,
             tipoUsuario,  
-            cnpj          
+            cnpj: tipoUsuario === 'restaurante' ? cnpj : null // Lógica de CNPJ correta mantida!
         });
-        //sucesso
+        
+        // Sucesso
         res.json({ message: 'Usuário cadastrado com sucesso.' });
     } catch (error) {
-        //falha, envia mensagem de erro para o front-end para exibir para o usuário
+        // Falha, envia mensagem de erro para o front-end para exibir para o usuário
         res.status(500).json({ error: error.message });
     }
 });
