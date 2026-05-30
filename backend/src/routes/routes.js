@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controller/userController');
-// const auth = require('../middleware/auth'); // O auth está na branch feat-rota-autenticaco
+const restaurantRoutes = require('./restaurantRoutes');
+
 router.post('/login', userController.login);
+router.use(restaurantRoutes);
 
 const bcrypt = require('bcrypt');
 const db = require('../database/exports');
