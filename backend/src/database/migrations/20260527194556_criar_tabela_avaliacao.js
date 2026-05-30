@@ -21,8 +21,8 @@ exports.up = function(knex) {
          .unsigned()
          .references('id')
          .inTable('pratos')
-         .onDelete('CASCADE')
-         .notNullable();
+         .onDelete('SET NULL')
+         .nullable();
     table.decimal('nota_avaliacao', 2, 1).notNullable(); // 1.0 até 5.0 estrelas
     table.string('comentario').notNullable();
     table.timestamps(true, true);
