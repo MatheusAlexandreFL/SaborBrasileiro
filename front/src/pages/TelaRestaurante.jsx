@@ -46,9 +46,30 @@ const StarIcon = () => (
   </svg>
 );
 
+const reviews = [
+  {
+    id: 1,
+    name: "Marina Silva",
+    rating: 5,
+    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incidente ut labore et dolore magna aliqua.",
+  },
+  {
+    id: 2,
+    name: "Marina Silva",
+    rating: 5,
+    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incidente ut labore et dolore magna aliqua. Quisque faucibus ex sapien vitae pellentesque sem placerat. Tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia inteiro nunc posuere. Ut hendrerit sempre vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.",
+  },
+  {
+    id: 3,
+    name: "Marina Silva",
+    rating: 5,
+    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incidente ut labore et dolore magna aliqua. Iaculis massa nisl malesuada lacinia inteiro nunc posuere. Ut hendrerit sempre vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.",
+  },
+];
+
 const TelaRestaurante = () => {
   return (
-    <main className="min-h-screen bg-white text-black">
+    <main className="min-h-screen bg-white font-notoserif text-black">
       <section className="mx-auto grid w-full max-w-[980px] grid-cols-1 gap-8 px-4 py-8 sm:px-8 md:grid-cols-[minmax(0,1fr)_minmax(330px,0.95fr)] md:gap-6 md:py-12">
         <div className="flex flex-col items-center gap-5">
           <div className="h-[250px] w-full overflow-hidden rounded-[7px] bg-[#F8EDDB] shadow-sm">
@@ -147,11 +168,11 @@ const TelaRestaurante = () => {
 
       <section className="px-4 py-8 sm:px-8 md:py-9">
         <div className="mx-auto flex w-full max-w-[720px] flex-col gap-6">
-          <h2 className="text-center font-serif text-[23px] font-extrabold leading-tight text-black sm:text-[24px]">
+          <h2 className="text-center font-serif text-[23px] font-medium leading-tight text-black sm:text-[24px]">
             Sobre o Restaurante
           </h2>
 
-          <div className="flex flex-col gap-1.5 text-[16px] font-semibold leading-[1.45] text-black">
+          <div className="flex flex-col gap-1.5 text-[16px] font-medium leading-[1.45] text-black">
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incidente ut labore
               et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
@@ -221,6 +242,46 @@ const TelaRestaurante = () => {
             </div>
           </div>
         </form>
+      </section>
+
+      <section className="px-4 pb-14 pt-2 sm:px-8 md:pt-3">
+        <div className="mx-auto flex w-full max-w-[720px] flex-col gap-8">
+          {reviews.map((review) => (
+            <article key={review.id} className="flex items-start gap-4 sm:gap-5">
+              <img
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80"
+                alt={`Foto de ${review.name}`}
+                className="h-12 w-12 shrink-0 rounded-full border-2 border-[#C13D33] object-cover p-[2px]"
+              />
+
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-x-10 gap-y-1">
+                  <h3 className="text-regular font-extrabold leading-tight text-black">{review.name}</h3>
+                  <div className="flex items-center gap-1 text-regular leading-none text-black">
+                    <span>{review.rating}</span>
+                    <span className="text-[22px] text-[#D88C36]" aria-hidden="true">
+                      ★
+                    </span>
+                  </div>
+                </div>
+
+                <p className="max-w-[530px] text-regular font-medium leading-[1.35] text-black">
+                  {review.text}
+                </p>
+              </div>
+            </article>
+          ))}
+
+          <a
+            href="#"
+            className="ml-16 mt-3 inline-flex w-fit items-center gap-4 text-[14px] font-extrabold text-[#D88C36] no-underline transition-colors hover:text-[#C13D33] sm:ml-[68px]"
+          >
+            Ver todas as avaliações
+            <span className="text-[20px] leading-none" aria-hidden="true">
+              →
+            </span>
+          </a>
+        </div>
       </section>
     </main>
   );
