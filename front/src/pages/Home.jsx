@@ -9,6 +9,7 @@ import { CATEGORIES, RESTAURANTS, HERO_COLLAGE } from "../mockData";
 
 
 const Home = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -346,11 +347,7 @@ const Home = () => {
           if (item === "Início") {
             window.scrollTo({ top: 0, behavior: "smooth" });
           } else if (item === "Sobre nós") {
-            // Se houver uma seção sobre nós, rola para ela. Como não há, podemos rolar para o rodapé.
-            const footer = document.querySelector("footer");
-            if (footer) {
-              footer.scrollIntoView({ behavior: "smooth" });
-            }
+            navigate("/sobre-nos");
           }
         }}
       />
