@@ -14,11 +14,10 @@ function autenticacao(req, res, next) {
 
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
         req.id = decoded.id;
-        req.usuarioId = decoded.id;
         req.usuario = decoded;
         next();
     } catch (e) {
-        res.status(401).json({ erro: 'Token inválido. ' + e.message });
+        res.status(401).json({ error: 'Token inválido. ' + e.message });
     }
 }
 

@@ -1,10 +1,10 @@
-exports.up = function (knex) {
+export function up(knex) {
   return knex.schema.createTable('usuarios', (table) => {
     table.increments('id').primary();
     table.string('nome').notNullable();
     table.string('email').notNullable().unique();
     table.string('senha').notNullable();
-    table.string('foto_perfil').nullable();
+    table.text('foto_perfil').nullable();
     table.string('tipoUsuario').notNullable().defaultTo('cliente');
     table.string('cnpj', 14).nullable().unique();
     table.timestamps(true, true);
@@ -12,6 +12,6 @@ exports.up = function (knex) {
 
 };
 
-exports.down = function (knex) {
+export function down(knex) {
   return knex.schema.dropTable('usuarios');
 };

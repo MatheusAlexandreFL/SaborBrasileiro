@@ -1,19 +1,19 @@
 import {useNavigate} from 'react-router-dom';
-import { RESTAURANTS } from "../mockData";
-const DishCard = ({ image, name, rating, restaurant, hideRating = false, hideLink = false }) => {
+
+const DishCard = ({ id, image, name, rating, restaurant, restauranteId, hideRating = false, hideLink = false }) => {
   const navigate = useNavigate();
   const handleClique = () => {
-    navigate("/prato", { 
-      state: { image, name, rating, restaurant } 
+    navigate(`/prato/${id}`, { 
+      state: { id, image, name, rating, restaurant, restauranteId } 
     });
   };
   const handleVerRestaurante = (e) => {
     e.stopPropagation();
-    const rest = RESTAURANTS.find((r) => r.name === restaurant);
-    if (rest) {
-      navigate("/restaurante", {
-        state: { id: rest.id, image: rest.image, name: rest.name, rating: rest.rating, category: rest.category, location: rest.location }
-      });
+    if (restauranteId) {
+      navigate(`/restaurante/${restauranteId}`);
+    } else {
+      // Fallback
+      navigate("/restaurante", { state: { name: restaurant } });
     }
   };
   return (

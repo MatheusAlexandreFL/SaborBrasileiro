@@ -1,13 +1,23 @@
 import pratoService from '../services/pratoServices.js';
 
+function obterStatusErro(error) {
+    if (error.message.includes('não encontrado') || error.message.includes('não encontrada')) {
+        return 404;
+    }
+    if (error.message.includes('não pertence')) {
+        return 403;
+    }
+    return 400;
+}
+
 async function cadastrar_prato(req, res){
     try {
         const { nome, descricao, preco, foto } = req.body;
         const usuario_id = req.id;
         await pratoService.cadastrar_prato(nome, descricao, preco, foto, usuario_id);
-        res.json({ message: 'Prato cadastrado com sucesso!' });
+        res.status(201).json({ message: 'Prato cadastrado com sucesso!' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(obterStatusErro(error)).json({ error: error.message });
     }
 }
 
@@ -19,7 +29,7 @@ async function atualizar_prato(req, res){
         await pratoService.atualizar_prato(id, nome, descricao, preco, foto, usuario_id);
         res.json({ message: 'Prato atualizado com sucesso!' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(obterStatusErro(error)).json({ error: error.message });
     }
 }
 
@@ -30,13 +40,14 @@ async function deletar_prato(req, res){
         await pratoService.deletar_prato(id, usuario_id);
         res.json({ message: 'Prato deletado com sucesso!' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(obterStatusErro(error)).json({ error: error.message });
     }
 }
 
 async function listar_pratos(req, res){
     try {
-        const pratos = await pratoService.listar_pratos();
+        const id_restaurante = req.query.id_restaurante;
+        const pratos = await pratoService.listar_pratos(id_restaurante);
         res.json(pratos);
     } catch (error) {
         res.status(500).json({ error: error.message });

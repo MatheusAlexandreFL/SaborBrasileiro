@@ -1,6 +1,6 @@
 import database from '../database/exports.js';
 
-async function cadastrar_prato(nome, descricao, preco, foto, usuario_id){
+async function cadastrar_prato(nome, descricao, preco, foto, usuario_id) {
     const restaurante = await database('restaurantes').where({ usuario_id: usuario_id }).first();
     if (!restaurante) {
         throw new Error('Nenhum restaurante encontrado associado a este usuário.');
@@ -15,7 +15,7 @@ async function cadastrar_prato(nome, descricao, preco, foto, usuario_id){
     });
 }
 
-async function atualizar_prato(id, nome, descricao, preco, foto, usuario_id){
+async function atualizar_prato(id, nome, descricao, preco, foto, usuario_id) {
     const restaurante = await database('restaurantes').where({ usuario_id: usuario_id }).first();
     if (!restaurante) {
         throw new Error('Nenhum restaurante encontrado associado a este usuário.');
@@ -35,7 +35,7 @@ async function atualizar_prato(id, nome, descricao, preco, foto, usuario_id){
     }
 }
 
-async function deletar_prato(id, usuario_id){
+async function deletar_prato(id, usuario_id) {
     const restaurante = await database('restaurantes').where({ usuario_id: usuario_id }).first();
     if (!restaurante) {
         throw new Error('Nenhum restaurante encontrado associado a este usuário.');
@@ -50,12 +50,24 @@ async function deletar_prato(id, usuario_id){
     }
 }
 
-async function listar_pratos(){
-    return await database('pratos').select('*');
+async function listar_pratos(id_restaurante) {
+    let query = database('pratos')
+        .join('restaurantes', 'pratos.restaurante_id', '=', 'restaurantes.id')
+        .select('pratos.*', 'restaurantes.nome as restaurante_nome');
+
+    if (id_restaurante) {
+        query = query.where('pratos.restaurante_id', id_restaurante);
+    }
+
+    return await query;
 }
 
-async function buscar_prato(id){
-    return await database('pratos').where({ id: id }).select('*').first();
+async function buscar_prato(id) {
+    return await database('pratos')
+        .join('restaurantes', 'pratos.restaurante_id', '=', 'restaurantes.id')
+        .where('pratos.id', id)
+        .select('pratos.*', 'restaurantes.nome as restaurante_nome')
+        .first();
 }
 
 export default {

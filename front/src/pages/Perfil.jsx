@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-
-const API_URL = "http://localhost:5000";
+import { userService } from "../services/api";
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -33,16 +32,12 @@ const Perfil = () => {
       navigate("/login");
       return;
     }
-    fetchPerfil(token);
+    fetchPerfil();
   }, [navigate]);
 
-  const fetchPerfil = async (token) => {
+  const fetchPerfil = async () => {
     try {
-      const response = await fetch(`${API_URL}/perfil`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error("Sessão expirada");
-      const data = await response.json();
+      const data = await userService.getPerfil();
       setPerfil(data);
       setNome(data.nome || "");
       setEmail(data.email || "");
@@ -72,7 +67,6 @@ const Perfil = () => {
     setSalvando(true);
     setMensagem(null);
     try {
-      const token = localStorage.getItem("token");
       const dados = {
         nome,
         foto_perfil: fotoPerfil || null,
@@ -82,23 +76,13 @@ const Perfil = () => {
         dados.cnpj = cnpj.replace(/\D/g, "") || null;
       }
 
-      const response = await fetch(`${API_URL}/perfil`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(dados),
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+      const result = await userService.updatePerfil(dados);
 
       setPerfil(result);
       localStorage.setItem("foto_perfil", result.foto_perfil || "");
       setMensagem({ tipo: "sucesso", texto: "Perfil atualizado com sucesso!" });
     } catch (error) {
-      setMensagem({ tipo: "erro", texto: error.message || "Erro ao salvar perfil" });
+      setMensagem({ tipo: "erro", texto: error.response?.data?.error || error.message || "Erro ao salvar perfil" });
     } finally {
       setSalvando(false);
     }
@@ -121,25 +105,14 @@ const Perfil = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/perfil/senha`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ senhaAtual, novaSenha }),
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+      await userService.updateSenha({ senhaAtual, novaSenha });
 
       setSenhaAtual("");
       setNovaSenha("");
       setConfirmarSenha("");
       setMensagemSenha({ tipo: "sucesso", texto: "Senha alterada com sucesso!" });
     } catch (error) {
-      setMensagemSenha({ tipo: "erro", texto: error.message || "Erro ao alterar senha" });
+      setMensagemSenha({ tipo: "erro", texto: error.response?.data?.error || error.message || "Erro ao alterar senha" });
     }
   };
 

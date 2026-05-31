@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { restaurantService } from "../services/api";
+import usePratos from "../hooks/usePratos";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import RestaurantCard from "../components/RestaurantCard";
 import DishCard from "../components/DishCard";
-import { CATEGORIES, RESTAURANTS, DISHES, HERO_COLLAGE } from "../mockData";
+import { CATEGORIES, HERO_COLLAGE } from "../mockData";
 
 
 const Home = () => {
@@ -13,9 +15,32 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("Início");
+  const [restaurants, setRestaurants] = useState([]);
+  const { dishes } = usePratos();
 
+  useEffect(() => {
+    const fetchRestaurantes = async () => {
+      try {
+        const data = await restaurantService.listar();
+        const mapped = data.map(r => ({
+          id: r.id,
+          name: r.nome,
+          rating: parseFloat(r.nota) || 0,
+          category: r.categoria,
+          categoryKey: r.categoria?.toLowerCase().split(" ")[0] || "todos",
+          location: `${r.cidade}, ${r.estado}`,
+          image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60"
+        }));
+        setRestaurants(mapped);
+      } catch (error) {
+        console.error("Erro ao carregar restaurantes:", error);
+      }
+    };
 
-  const filteredRestaurants = RESTAURANTS.filter((r) => {
+    fetchRestaurantes();
+  }, []);
+
+  const filteredRestaurants = restaurants.filter((r) => {
     const matchesCategory = selectedCategory === "all" || r.categoryKey === selectedCategory;
     const matchesSearch =
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -24,7 +49,7 @@ const Home = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const filteredDishes = DISHES.filter((d) => {
+  const filteredDishes = dishes.filter((d) => {
     const matchesCategory = selectedCategory === "all" || d.categoryKey === selectedCategory;
     const matchesSearch =
       d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -175,10 +200,12 @@ const Home = () => {
               {filteredDishes.map((dish) => (
                 <DishCard
                   key={dish.id}
+                  id={dish.id}
                   image={dish.image}
                   name={dish.name}
                   rating={dish.rating}
                   restaurant={dish.restaurant}
+                  restauranteId={dish.restauranteId}
                 />
               ))}
             </div>

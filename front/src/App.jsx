@@ -6,6 +6,7 @@ import Perfil from './pages/Perfil'
 import Prato from './pages/Prato'
 import TelaRestaurante from './pages/TelaRestaurante'
 import SobreNos from './pages/SobreNos'
+import ProtectedRoute from './components/ProtectedRoute'
 import { ToastProvider } from './context/ToastContext'
 
 const App = () => {
@@ -13,13 +14,15 @@ const App = () => {
         <ToastProvider>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/home" element={<Home />} />
+                    <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                    <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/cadastro" element={<Cadastro />} />
-                    <Route path="/perfil" element={<Perfil />} />
-                    <Route path="/prato" element={<Prato />} />
-                    <Route path="/restaurante" element={<TelaRestaurante />} />
+                    <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+                    <Route path="/prato" element={<ProtectedRoute><Prato /></ProtectedRoute>} />
+                    <Route path="/prato/:id" element={<ProtectedRoute><Prato /></ProtectedRoute>} />
+                    <Route path="/restaurante" element={<ProtectedRoute><TelaRestaurante /></ProtectedRoute>} />
+                    <Route path="/restaurante/:id" element={<ProtectedRoute><TelaRestaurante /></ProtectedRoute>} />
                     <Route path="/sobre-nos" element={<SobreNos />} />
                 </Routes>
             </BrowserRouter>

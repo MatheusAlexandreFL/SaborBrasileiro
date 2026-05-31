@@ -2,37 +2,38 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function(knex) {
+export function up(knex) {
   return knex.schema.createTable('avaliacoes', (table) => {
     table.increments('id').primary();
-    table.integer('restaurante_id')
+    table.integer('id_restaurante')
          .unsigned()
          .references('id')
          .inTable('restaurantes')
          .onDelete('CASCADE')
          .notNullable();
-    table.integer('usuario_id')
+    table.integer('id_usuario')
          .unsigned()
          .references('id')
          .inTable('usuarios')
          .onDelete('CASCADE')
          .notNullable();
-    table.integer('prato_id')
+    table.integer('id_prato')
          .unsigned()
          .references('id')
          .inTable('pratos')
          .onDelete('SET NULL')
          .nullable();
-    table.decimal('nota_avaliacao', 2, 1).notNullable(); // 1.0 até 5.0 estrelas
+    table.decimal('nota', 2, 1).notNullable();
     table.string('comentario').notNullable();
     table.timestamps(true, true);
-  })
+  });
 };
 
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function(knex) {
+export function down(knex) {
   return knex.schema.dropTable('avaliacoes');
 };
+
