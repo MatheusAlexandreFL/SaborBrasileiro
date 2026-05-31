@@ -2,25 +2,36 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function(knex) {
+export function up(knex) {
   return knex.schema.createTable('restaurantes', (table) => {
     table.increments('id').primary();
-    table.string('nome').notNullable()
     table.integer('usuario_id')
-         .unique()
          .unsigned()
-         .references('id')
-         .inTable('usuarios')
-         .onDelete('CASCADE')
-         .notNullable();
-    table.string('especialidade').notNullable();
-  })
+         .notNullable()
+         .unique();
+    table.string('nome').notNullable();
+    table.text('descricao').nullable();
+    table.string('categoria').notNullable();
+    table.string('endereco').notNullable();
+    table.string('cidade').notNullable();
+    table.string('estado', 2).notNullable();
+    table.string('telefone', 20).nullable();
+    table.string('imagem_url').nullable();
+    table.decimal('nota', 2, 1).notNullable().defaultTo(0);
+    table.timestamps(true, true);
+
+    table
+      .foreign('usuario_id')
+      .references('id')
+      .inTable('usuarios')
+      .onDelete('CASCADE');
+  });
 };
 
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function(knex) {
-  return knex.schema.dropTable('restaurantes')
+export function down(knex) {
+  return knex.schema.dropTable('restaurantes');
 };

@@ -34,7 +34,7 @@ async function buscarPorId(req, res) {
 
 async function criar(req, res) {
   try {
-    const restaurante = await restaurantService.criar(req.body, req.usuarioId);
+    const restaurante = await restaurantService.criar(req.body, req.id);
 
     res.status(201).json(restaurante);
   } catch (error) {
@@ -47,7 +47,7 @@ async function atualizar(req, res) {
     const restaurante = await restaurantService.atualizar(
       req.params.id,
       req.body,
-      req.usuarioId,
+      req.id,
     );
 
     res.json(restaurante);
@@ -60,7 +60,7 @@ async function atualizar(req, res) {
 
 async function remover(req, res) {
   try {
-    await restaurantService.remover(req.params.id, req.usuarioId);
+    await restaurantService.remover(req.params.id, req.id);
 
     res.status(204).send();
   } catch (error) {

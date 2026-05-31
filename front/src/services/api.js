@@ -16,8 +16,13 @@ api.interceptors.request.use((config) => {
 });
 
 export const pratoService = {
-  listarPratos: async () => {
-    const response = await api.get("/pratos");
+  listarPratos: async (id_restaurante) => {
+    const params = id_restaurante ? { id_restaurante } : {};
+    const response = await api.get("/pratos", { params });
+    return response.data;
+  },
+  buscarPrato: async (id) => {
+    const response = await api.get(`/pratos/${id}`);
     return response.data;
   }
 };
@@ -48,4 +53,35 @@ export const userService = {
   }
 };
 
+export const restaurantService = {
+  listar: async () => {
+    const response = await api.get("/restaurantes");
+    return response.data;
+  },
+  buscarPorId: async (id) => {
+    const response = await api.get(`/restaurantes/${id}`);
+    return response.data;
+  }
+};
+
+export const avaliacaoService = {
+  listar: async (filtros) => {
+    const response = await api.get("/avaliacoes", { params: filtros });
+    return response.data;
+  },
+  criar: async (dados) => {
+    const response = await api.post("/avaliacoes", dados);
+    return response.data;
+  },
+  editar: async (id, dados) => {
+    const response = await api.put(`/avaliacoes/${id}`, dados);
+    return response.data;
+  },
+  deletar: async (id) => {
+    const response = await api.delete(`/avaliacoes/${id}`);
+    return response.data;
+  }
+};
+
 export default api;
+

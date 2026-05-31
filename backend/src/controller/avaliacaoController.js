@@ -1,13 +1,23 @@
 import avaliacaoService from '../services/avaliacaoService.js';
 
+function obterStatusErro(error) {
+    if (error.message.includes('não encontrada')) {
+        return 404;
+    }
+    if (error.message.includes('permissão')) {
+        return 403;
+    }
+    return 400;
+}
+
 async function criar_avaliacao(req, res) {
     try {
         const { id_restaurante, id_prato, nota, comentario } = req.body;
         const id_usuario = req.id;
         const avaliacao = await avaliacaoService.criar_avaliacao({ id_usuario, id_restaurante, id_prato, nota, comentario });
-        res.json(avaliacao);
+        res.status(201).json(avaliacao);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(obterStatusErro(error)).json({ error: error.message });
     }
 }
 
@@ -26,23 +36,24 @@ async function listar_avaliacoes(req, res) {
 
 async function editar_avaliacao(req, res) {
     try {
-        const { id_avaliacao, nota, comentario } = req.body;
+        const { id } = req.params;
+        const { nota, comentario } = req.body;
         const id_usuario = req.id;
-        const avaliacao = await avaliacaoService.editar_avaliacao(id_avaliacao, id_usuario, { nota, comentario });
+        const avaliacao = await avaliacaoService.editar_avaliacao(id, id_usuario, { nota, comentario });
         res.json(avaliacao);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(obterStatusErro(error)).json({ error: error.message });
     }
 }
 
 async function deletar_avaliacao(req, res) {
     try {
-        const { id_avaliacao } = req.body;
+        const { id } = req.params;
         const id_usuario = req.id;
-        const avaliacao = await avaliacaoService.deletar_avaliacao(id_avaliacao, id_usuario);
+        const avaliacao = await avaliacaoService.deletar_avaliacao(id, id_usuario);
         res.json(avaliacao);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(obterStatusErro(error)).json({ error: error.message });
     }
 }
 
@@ -52,3 +63,4 @@ export default {
     deletar_avaliacao,
     listar_avaliacoes
 }
+

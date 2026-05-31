@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { RESTAURANTS } from "../mockData";
 import DishCard from "../components/DishCard";
 import { useToast } from "../context/ToastContext";
-import { pratoService } from "../services/api";
+import { restaurantService, avaliacaoService } from "../services/api";
+import usePratos from "../hooks/usePratos";
 
 const MapPinIcon = () => (
   <svg
@@ -107,27 +108,21 @@ const INITIAL_REVIEWS = [
 ];
 
 const TelaRestaurante = () => {
+  const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const toast = useToast();
   const menuRef = useRef(null);
-
-  const pratoPadrao = {
-    id: 1,
-    name: "Origem Cozinha Natural",
-    rating: 4.9,
-    category: "Saudável - Contemporânea",
-    location: "Rio de Janeiro, RJ",
-    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900&auto=format&fit=crop&q=85"
-  };
-
-  const restaurantePrincipal = {
-    id: location.state?.id || pratoPadrao.id,
-    name: location.state?.name || pratoPadrao.name,
-    rating: location.state?.rating || pratoPadrao.rating,
-    category: location.state?.category || pratoPadrao.category,
-    location: location.state?.location || pratoPadrao.location,
-    image: location.state?.image || pratoPadrao.image
+  
+  const [restauranteInfo, setRestauranteInfo] = useState(location.state || null);
+  // Se não vier do state (refresh direto na página com id), o useEffect busca.
+  const restaurantePrincipal = restauranteInfo || {
+    id: id || 1,
+    name: "Carregando...",
+    rating: 0,
+    category: "...",
+    location: "...",
+    image: ""
   };
 
   const details = RESTAURANT_DETAILS[restaurantePrincipal.name] || {
@@ -143,56 +138,52 @@ const TelaRestaurante = () => {
   };
 
 
-  const [listaComentarios, setListaComentarios] = useState(INITIAL_REVIEWS);
+  const [listaComentarios, setListaComentarios] = useState([]);
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState(false);
   const [nota, setNota] = useState(0);
   const [hoverNota, setHoverNota] = useState(0);
   const [comentario, setComentario] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dishes, setDishes] = useState([]);
+  
+  const { dishes } = usePratos(id || restaurantePrincipal.id);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    const fetchPratos = async () => {
+    const fetchDados = async () => {
+      const restId = id || restaurantePrincipal.id;
+      if (!restId) return;
+      
       try {
-        const data = await pratoService.listarPratos();
-        const mappedDishes = data.map(prato => ({
-          id: prato.id,
-          name: prato.nome,
-          description: prato.descricao,
-          price: `R$ ${parseFloat(prato.preco).toFixed(2).replace('.', ',')}`,
-          image: prato.foto_prato,
-          rating: 4.5,
-          restaurant: prato.restaurante_nome,
-          categoryKey: "todos"
-        }));
-        setDishes(mappedDishes);
-      } catch (error) {
-        console.error("Erro ao carregar pratos:", error);
-        if (error.response && error.response.status === 401) {
-          navigate("/login");
+        // Busca info do restaurante se não veio no state
+        if (!restauranteInfo && id) {
+           const restData = await restaurantService.buscarPorId(id);
+           setRestauranteInfo({
+             id: restData.id,
+             name: restData.nome,
+             rating: parseFloat(restData.nota) || 0,
+             category: restData.categoria,
+             location: `${restData.cidade}, ${restData.estado}`,
+             image: restData.imagem_url || details.gallery[0]
+           });
         }
+        
+        // Busca avaliações reais da API
+        const avaliacoes = await avaliacaoService.listar({ id_restaurante: restId });
+        setListaComentarios(avaliacoes.map(av => ({
+           id: av.id,
+           nome: av.nome_usuario || "Usuário",
+           iniciais: av.nome_usuario ? av.nome_usuario.substring(0,2).toUpperCase() : "US",
+           nota: parseFloat(av.nota),
+           texto: av.comentario
+        })));
+      } catch (e) {
+        console.error("Erro ao carregar dados do restaurante", e);
       }
     };
-
-    fetchPratos();
-  }, [navigate]);
-
-  // Resete de estado quando o restaurante principal muda
-  useEffect(() => {
-    setListaComentarios(INITIAL_REVIEWS);
-    setNota(0);
-    setHoverNota(0);
-    setComentario("");
-    setMostrarTodosComentarios(false);
+    
+    fetchDados();
     window.scrollTo(0, 0);
-  }, [restaurantePrincipal.id]);
+  }, [id, restaurantePrincipal.id]);
 
   // Filtro de busca inteligente (por nome, categoria, prato, endereço e descrição)
   const filteredRestaurantsFromSearch = RESTAURANTS.filter((r) => {
@@ -266,10 +257,8 @@ const TelaRestaurante = () => {
     ? listaComentarios.reduce((soma, item) => soma + item.nota, 0) / listaComentarios.length
     : restaurantePrincipal.rating;
 
-  // Filtrar pratos do restaurante
-  const pratosDoRestaurante = dishes.filter(
-    (dish) => dish.restaurant && dish.restaurant.toLowerCase() === restaurantePrincipal.name.toLowerCase()
-  );
+  // Os pratos já vêm filtrados pela API pelo hook usePratos
+  const pratosDoRestaurante = dishes;
 
   const comentariosExibidos = mostrarTodosComentarios ? listaComentarios : listaComentarios.slice(0, 2);
 
@@ -277,28 +266,38 @@ const TelaRestaurante = () => {
     menuRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const handleEnviarAvaliacao = (e) => {
+  const handleEnviarAvaliacao = async (e) => {
     e.preventDefault();
     if (nota === 0) {
       toast.warning("Por favor, selecione uma nota antes de enviar.");
       return;
     }
 
-    const novaAvaliacao = {
-      id: Date.now(),
-      nome: "Você",
-      iniciais: "VC",
-      nota: nota,
-      texto: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
-    };
+    try {
+      const novaAvaliacao = await avaliacaoService.criar({
+         id_restaurante: restaurantePrincipal.id,
+         nota: nota,
+         comentario: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
+      });
+      
+      const avLocal = {
+         id: novaAvaliacao.id,
+         nome: "Você",
+         iniciais: "VC",
+         nota: parseFloat(novaAvaliacao.nota) || nota,
+         texto: novaAvaliacao.comentario
+      };
 
-    setListaComentarios([novaAvaliacao, ...listaComentarios]);
-    setNota(0);
-    setHoverNota(0);
-    setComentario("");
-    setMostrarTodosComentarios(true);
-
-    toast.success("Obrigado! Sua avaliação foi adicionada com sucesso.");
+      setListaComentarios([avLocal, ...listaComentarios]);
+      setNota(0);
+      setHoverNota(0);
+      setComentario("");
+      setMostrarTodosComentarios(true);
+      toast.success("Obrigado! Sua avaliação foi adicionada com sucesso.");
+    } catch (e) {
+      console.error(e);
+      toast.error(e.response?.data?.error || "Erro ao adicionar avaliação.");
+    }
   };
 
   return (

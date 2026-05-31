@@ -1,18 +1,21 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; 
-import { REVIEWS } from "../mockData"; 
+import { useLocation, useNavigate, useParams } from "react-router-dom"; 
 import DishCard from "../components/DishCard";
 import AvaliarButton from "../components/AvaliarButton";
 import { useToast } from "../context/ToastContext";
-import { pratoService } from "../services/api";
+import { pratoService, avaliacaoService } from "../services/api";
+import usePratos from "../hooks/usePratos";
 
 const Prato = () => {
+  const { id } = useParams();
   const location = useLocation();
-  const navigate = useNavigate(); // add para o botão de voltar funcionar
+  const navigate = useNavigate(); 
   const toast = useToast();
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState(false);
-  const [listaComentarios, setListaComentarios] = useState(REVIEWS);
-  const [dishes, setDishes] = useState([]);
+  const [listaComentarios, setListaComentarios] = useState([]);
+  const [pratoInfo, setPratoInfo] = useState(location.state || null);
+  
+  const { dishes } = usePratos(pratoInfo?.restauranteId); // Para as recomendações
 
   // add: a pagina começa do topo 
   useEffect(() => {
@@ -20,89 +23,84 @@ const Prato = () => {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    const fetchDados = async () => {
+      const pratoId = id || pratoInfo?.id;
+      if (!pratoId) return;
 
-    const fetchPratos = async () => {
       try {
-        const data = await pratoService.listarPratos();
-        const mappedDishes = data.map(prato => ({
-          id: prato.id,
-          name: prato.nome,
-          description: prato.descricao,
-          price: `R$ ${parseFloat(prato.preco).toFixed(2).replace('.', ',')}`,
-          image: prato.foto_prato,
-          rating: 4.5,
-          restaurant: prato.restaurante_nome,
-          categoryKey: "todos"
-        }));
-        setDishes(mappedDishes);
-      } catch (error) {
-        console.error("Erro ao carregar pratos:", error);
-        if (error.response && error.response.status === 401) {
-          navigate("/login");
+        if (!pratoInfo && id) {
+          const data = await pratoService.buscarPrato(id);
+          setPratoInfo({
+            id: data.id,
+            name: data.nome,
+            description: data.descricao,
+            price: `R$ ${parseFloat(data.preco).toFixed(2).replace('.', ',')}`,
+            image: data.foto_prato,
+            rating: 4.5, // placeholder caso não tenha nota média
+            restaurant: data.restaurante_nome,
+            restauranteId: data.restaurante_id
+          });
         }
+
+        const avaliacoes = await avaliacaoService.listar({ id_prato: pratoId });
+        setListaComentarios(avaliacoes.map(av => ({
+           id: av.id,
+           nome: av.nome_usuario || "Usuário",
+           iniciais: av.nome_usuario ? av.nome_usuario.substring(0,2).toUpperCase() : "US",
+           nota: parseFloat(av.nota),
+           texto: av.comentario
+        })));
+      } catch (e) {
+        console.error(e);
       }
     };
-
-    fetchPratos();
-  }, [navigate]);
+    fetchDados();
+  }, [id, pratoInfo]);
 
   // calculo da media geral
   const mediaGeralDinamica = listaComentarios.length > 0 
     ? listaComentarios.reduce((soma, comentario) => soma + comentario.nota, 0) / listaComentarios.length 
     : 0;
 
-  const pratoPadrao = {
-    name: "Risoto de Cogumelos Trufado",
-    price: "R$ 89,90",
-    description: "Arroz arbóreo italiano cozido lentamente em caldo artesanal de legumes, finalizado com um mix de cogumelos frescos (Paris, Shimeji e Portobello), manteiga de trufas brancas e parmesão 24 meses.",
-    image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80",
-    restaurant: "Cantina Bella Italia"
-  };
-
-  // Busca dados completos do prato no state da API para obter o preço correto
-  const pratoDaApi = dishes.find(
-    (d) => d.name === (location.state?.name || pratoPadrao.name)
-  );
-
-  const pratoPrincipal = {
-    name: location.state?.name || pratoPadrao.name,
-    restaurant: location.state?.restaurant || pratoPadrao.restaurant,
-    image: location.state?.image || pratoPadrao.image,
-    price: location.state?.price || pratoDaApi?.price || pratoPadrao.price,
-    description: location.state?.description || pratoDaApi?.description || pratoPadrao.description
+  const pratoPrincipal = pratoInfo || {
+    name: "Carregando...",
+    price: "...",
+    description: "...",
+    image: "",
+    restaurant: "...",
+    restauranteId: null
   };
 
   const recomendacoes = dishes.filter(
-    (dish) => dish.restaurant === pratoPrincipal.restaurant && dish.name !== pratoPrincipal.name
+    (dish) => dish.restauranteId === pratoPrincipal.restauranteId && dish.id !== pratoPrincipal.id
   ).slice(0, 5);
 
   const comentariosExibidos = mostrarTodosComentarios ? listaComentarios : listaComentarios.slice(0, 2);
 
-  const handleSalvarAvaliacao = (dadosDaAvaliacao) => {
-    const payload = {
-      prato: pratoPrincipal.name,
-      nota: dadosDaAvaliacao.nota,
-      comentario: dadosDaAvaliacao.comentario
-    };
-    console.log("Axios vai enviar isto pro Banco:", payload);
+  const handleSalvarAvaliacao = async (dadosDaAvaliacao) => {
+    try {
+      const novaAvaliacao = await avaliacaoService.criar({
+        id_prato: pratoPrincipal.id,
+        id_restaurante: pratoPrincipal.restauranteId,
+        nota: dadosDaAvaliacao.nota,
+        comentario: dadosDaAvaliacao.comentario
+      });
 
-    const novaAvaliacaoVisual = {
-      id: Date.now(),
-      nome: "Você",
-      iniciais: "VC",
-      nota: dadosDaAvaliacao.nota,
-      texto: dadosDaAvaliacao.comentario
-    };
+      const novaAvaliacaoVisual = {
+        id: novaAvaliacao.id,
+        nome: "Você",
+        iniciais: "VC",
+        nota: parseFloat(novaAvaliacao.nota) || dadosDaAvaliacao.nota,
+        texto: novaAvaliacao.comentario
+      };
 
-    setListaComentarios([novaAvaliacaoVisual, ...listaComentarios]);
-    setMostrarTodosComentarios(true);
-
-    toast.success(`Sucesso! Sua nota ${dadosDaAvaliacao.nota} foi adicionada e a média foi atualizada!`);
+      setListaComentarios([novaAvaliacaoVisual, ...listaComentarios]);
+      setMostrarTodosComentarios(true);
+      toast.success(`Sucesso! Sua nota ${dadosDaAvaliacao.nota} foi adicionada e a média foi atualizada!`);
+    } catch (e) {
+      console.error(e);
+      toast.error(e.response?.data?.error || "Erro ao avaliar o prato.");
+    }
   };
 
   return (

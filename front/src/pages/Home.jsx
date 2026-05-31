@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { pratoService } from "../services/api";
+import { restaurantService } from "../services/api";
+import usePratos from "../hooks/usePratos";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import RestaurantCard from "../components/RestaurantCard";
 import DishCard from "../components/DishCard";
-import { CATEGORIES, RESTAURANTS, HERO_COLLAGE } from "../mockData";
+import { CATEGORIES, HERO_COLLAGE } from "../mockData";
 
 
 const Home = () => {
@@ -14,41 +15,32 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("Início");
-  const [dishes, setDishes] = useState([]);
+  const [restaurants, setRestaurants] = useState([]);
+  const { dishes } = usePratos();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    const fetchPratos = async () => {
+    const fetchRestaurantes = async () => {
       try {
-        const data = await pratoService.listarPratos();
-        const mappedDishes = data.map(prato => ({
-          id: prato.id,
-          name: prato.nome,
-          description: prato.descricao,
-          price: `R$ ${parseFloat(prato.preco).toFixed(2).replace('.', ',')}`,
-          image: prato.foto_prato,
-          rating: 4.5,
-          restaurant: prato.restaurante_nome,
-          categoryKey: "todos"
+        const data = await restaurantService.listar();
+        const mapped = data.map(r => ({
+          id: r.id,
+          name: r.nome,
+          rating: parseFloat(r.nota) || 0,
+          category: r.categoria,
+          categoryKey: r.categoria?.toLowerCase().split(" ")[0] || "todos",
+          location: `${r.cidade}, ${r.estado}`,
+          image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60"
         }));
-        setDishes(mappedDishes);
+        setRestaurants(mapped);
       } catch (error) {
-        console.error("Erro ao carregar pratos:", error);
-        if (error.response && error.response.status === 401) {
-          navigate("/login");
-        }
+        console.error("Erro ao carregar restaurantes:", error);
       }
     };
 
-    fetchPratos();
-  }, [navigate]);
+    fetchRestaurantes();
+  }, []);
 
-  const filteredRestaurants = RESTAURANTS.filter((r) => {
+  const filteredRestaurants = restaurants.filter((r) => {
     const matchesCategory = selectedCategory === "all" || r.categoryKey === selectedCategory;
     const matchesSearch =
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -208,10 +200,12 @@ const Home = () => {
               {filteredDishes.map((dish) => (
                 <DishCard
                   key={dish.id}
+                  id={dish.id}
                   image={dish.image}
                   name={dish.name}
                   rating={dish.rating}
                   restaurant={dish.restaurant}
+                  restauranteId={dish.restauranteId}
                 />
               ))}
             </div>

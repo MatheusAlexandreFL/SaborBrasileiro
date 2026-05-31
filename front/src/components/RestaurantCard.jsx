@@ -4,7 +4,7 @@ const RestaurantCard = ({ id, rank, image, name, rating, category, location }) =
   const navigate = useNavigate();
 
   const handleClique = () => {
-    navigate("/restaurante", {
+    navigate(`/restaurante/${id}`, {
       state: { id, rank, image, name, rating, category, location }
     });
   };
