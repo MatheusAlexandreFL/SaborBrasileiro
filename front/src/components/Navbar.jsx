@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userPhoto, hideSearch = false, hideFilter = false }) => {
   const location = useLocation();
@@ -7,6 +7,26 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
   const isSobreNos = location.pathname === "/sobre-nos";
   const defaultPhoto = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80";
   const [photo, setPhoto] = useState(userPhoto || localStorage.getItem("foto_perfil") || defaultPhoto);
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
+  const mobileRef = useRef(null);
+  const desktopRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (mobileRef.current && !mobileRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+      if (desktopRef.current && !desktopRef.current.contains(event.target)) {
+        setIsDesktopMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
 
   useEffect(() => {
     if (userPhoto !== undefined) {
@@ -53,8 +73,11 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
         </div>
 
 
-        <div className="flex md:hidden items-center gap-2">
-          <div className="relative group cursor-pointer flex items-center gap-1 p-1 rounded-full hover:bg-black/5 transition-all">
+        <div className="flex md:hidden items-center gap-2" ref={mobileRef}>
+          <div 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="relative cursor-pointer flex items-center gap-1 p-1 rounded-full hover:bg-black/5 transition-all"
+          >
             <img
               src={photo}
               alt="Foto do usuário"
@@ -64,18 +87,19 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
 
-
-            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 hidden group-hover:block z-50 before:content-[''] before:absolute before:-top-2 before:left-0 before:w-full before:h-2">
-              <Link to="/perfil" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
-                Meu Perfil
-              </Link>
-              <Link to="/cadastro" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
-                Cadastrar restaurante
-              </Link>
-              <Link to="/login" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
-                Sair
-              </Link>
-            </div>
+            {isMobileMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 z-50" onClick={(e) => e.stopPropagation()}>
+                <Link to="/perfil" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
+                  Meu Perfil
+                </Link>
+                <Link to="/cadastro" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
+                  Cadastrar restaurante
+                </Link>
+                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
+                  Sair
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -115,29 +139,33 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
       )}
 
 
-      <div className="hidden md:flex items-center gap-2">
-        <div className="relative group cursor-pointer flex items-center gap-1.5 p-1 rounded-full hover:bg-black/5 transition-all">
+      <div className="hidden md:flex items-center gap-2" ref={desktopRef}>
+        <div 
+          onClick={() => setIsDesktopMenuOpen(!isDesktopMenuOpen)}
+          className="relative cursor-pointer flex items-center gap-1.5 p-1 rounded-full hover:bg-black/5 transition-all"
+        >
           <img
             src={photo}
             alt="Foto do usuário"
             className="w-[36px] h-[36px] rounded-full object-cover border border-[#C13D33]/20"
           />
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-black/60 group-hover:text-black transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-black/60 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
 
-
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 hidden group-hover:block z-50 before:content-[''] before:absolute before:-top-2 before:left-0 before:w-full before:h-2">
-            <Link to="/perfil" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
-              Meu Perfil
-            </Link>
-            <Link to="/cadastro" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
-              Cadastrar restaurante
-            </Link>
-            <Link to="/login" className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
-              Sair
-            </Link>
-          </div>
+          {isDesktopMenuOpen && (
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 py-2 z-50" onClick={(e) => e.stopPropagation()}>
+              <Link to="/perfil" onClick={() => setIsDesktopMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
+                Meu Perfil
+              </Link>
+              <Link to="/cadastro" onClick={() => setIsDesktopMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
+                Cadastrar restaurante
+              </Link>
+              <Link to="/login" onClick={() => setIsDesktopMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
+                Sair
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </nav>
