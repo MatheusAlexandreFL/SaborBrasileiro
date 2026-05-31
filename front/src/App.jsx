@@ -5,6 +5,7 @@ import Cadastro from './pages/Cadastro'
 import Perfil from './pages/Perfil'
 import Prato from './pages/Prato'
 import TelaRestaurante from './pages/TelaRestaurante'
+import SobreNos from './pages/SobreNos'
 import { ToastProvider } from './context/ToastContext'
 
 const App = () => {
@@ -19,6 +20,7 @@ const App = () => {
                     <Route path="/perfil" element={<Perfil />} />
                     <Route path="/prato" element={<Prato />} />
                     <Route path="/restaurante" element={<TelaRestaurante />} />
+                    <Route path="/sobre-nos" element={<SobreNos />} />
                 </Routes>
             </BrowserRouter>
         </ToastProvider>

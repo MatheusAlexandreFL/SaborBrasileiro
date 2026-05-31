@@ -1,7 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userPhoto, hideSearch = false, hideFilter = false }) => {
+  const location = useLocation();
+  const isHome = location.pathname === "/" || location.pathname === "/home";
+  const isSobreNos = location.pathname === "/sobre-nos";
   const defaultPhoto = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80";
   const [photo, setPhoto] = useState(userPhoto || localStorage.getItem("foto_perfil") || defaultPhoto);
 
@@ -38,13 +41,14 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
 
 
           <div className="hidden md:flex items-center gap-6 text-[15px] font-medium">
-            <Link to="/home" className="text-black font-semibold relative py-1 no-underline">
+            <Link to="/home" className={`py-1 no-underline transition-colors ${isHome ? "text-black font-semibold relative" : "text-black/60 hover:text-black"}`}>
               Início
-              <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#C13D33] rounded-full"></span>
+              {isHome && <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#C13D33] rounded-full"></span>}
             </Link>
-            <a href="#" className="text-black/60 hover:text-black transition-colors no-underline">
+            <Link to="/sobre-nos" className={`py-1 no-underline transition-colors ${isSobreNos ? "text-black font-semibold relative" : "text-black/60 hover:text-black"}`}>
               Sobre nós
-            </a>
+              {isSobreNos && <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#C13D33] rounded-full"></span>}
+            </Link>
           </div>
         </div>
 
