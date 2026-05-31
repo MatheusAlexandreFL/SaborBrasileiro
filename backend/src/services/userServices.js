@@ -3,6 +3,25 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import database from '../database/exports.js';
 
+async function cadastrarUsuario(dados) {
+    const { nome, email, senha, tipoUsuario, cnpj, foto_perfil } = dados;
+
+    const usuario = await database("usuarios").select("*").where({ email: email }).first();
+    if (usuario) {
+        throw new Error('Usuario já cadastrado');
+    }
+
+    const hash = await bcrypt.hash(senha, 10);
+    await database("usuarios").insert({
+        nome,
+        email,
+        senha: hash,
+        tipoUsuario,
+        cnpj,
+        foto_perfil
+    });
+}
+
 async function login(email, senha) {
    const usuario = await database("usuarios").select("*").where({ email: email }).first();
    
@@ -87,4 +106,5 @@ export default {
     getPerfil,
     updatePerfil,
     updateSenha,
+    cadastrarUsuario
 };

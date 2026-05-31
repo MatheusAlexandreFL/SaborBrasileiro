@@ -50,10 +50,16 @@ async function deletar_prato(id, usuario_id) {
     }
 }
 
-async function listar_pratos() {
-    return await database('pratos')
+async function listar_pratos(id_restaurante) {
+    let query = database('pratos')
         .join('restaurantes', 'pratos.restaurante_id', '=', 'restaurantes.id')
         .select('pratos.*', 'restaurantes.nome as restaurante_nome');
+
+    if (id_restaurante) {
+        query = query.where('pratos.restaurante_id', id_restaurante);
+    }
+
+    return await query;
 }
 
 async function buscar_prato(id) {

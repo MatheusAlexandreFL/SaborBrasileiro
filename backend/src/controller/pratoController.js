@@ -36,7 +36,8 @@ async function deletar_prato(req, res){
 
 async function listar_pratos(req, res){
     try {
-        const pratos = await pratoService.listar_pratos();
+        const id_restaurante = req.query.id_restaurante;
+        const pratos = await pratoService.listar_pratos(id_restaurante);
         res.json(pratos);
     } catch (error) {
         res.status(500).json({ error: error.message });
