@@ -22,7 +22,7 @@ const INTEGRANTES = [
     iniciais: "IG",
     corGradiente: "from-teal-500 to-emerald-500",
     github: "https://github.com/ismaelgama",
-    linkedin: "https://linkedin.com",
+    linkedin: "https://www.linkedin.com/in/ismael-gama-234691240/",
   },
   {
     nome: "Matheus Alexandre Ferreira Leite",

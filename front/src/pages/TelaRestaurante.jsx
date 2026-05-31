@@ -150,7 +150,7 @@ const TelaRestaurante = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Resete de estado quando o restaurante principal muda
+
   useEffect(() => {
     setListaComentarios(INITIAL_REVIEWS);
     setNota(0);
