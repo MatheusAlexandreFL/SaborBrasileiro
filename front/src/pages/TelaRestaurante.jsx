@@ -157,6 +157,7 @@ const TelaRestaurante = () => {
     setHoverNota(0);
     setComentario("");
     setMostrarTodosComentarios(false);
+    window.scrollTo(0, 0);
   }, [restaurantePrincipal.id]);
 
   // Filtro de busca inteligente (por nome, categoria, prato, endereço e descrição)
