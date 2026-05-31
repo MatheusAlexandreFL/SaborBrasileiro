@@ -1,5 +1,15 @@
 import userService from '../services/userServices.js';
 
+async function cadastrarUsuario(req, res) {
+    try {
+        const dados = req.body;
+        const usuario = await userService.cadastrarUsuario(dados);
+        res.status(201).json({ message: 'Usuário cadastrado com sucesso', usuario });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+}
+
 async function login(req, res) {
     try {   
         const { email, senha } = req.body; 
@@ -49,6 +59,7 @@ async function updateSenha(req, res) {
 }
 
 export default {
+    cadastrarUsuario,
     login,
     getPerfil,
     updatePerfil,
