@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { DISHES, RESTAURANTS } from "../mockData";
+import { RESTAURANTS } from "../mockData";
 import DishCard from "../components/DishCard";
 import { useToast } from "../context/ToastContext";
+import { pratoService } from "../services/api";
 
 const MapPinIcon = () => (
   <svg
@@ -149,6 +150,39 @@ const TelaRestaurante = () => {
   const [comentario, setComentario] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [dishes, setDishes] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchPratos = async () => {
+      try {
+        const data = await pratoService.listarPratos();
+        const mappedDishes = data.map(prato => ({
+          id: prato.id,
+          name: prato.nome,
+          description: prato.descricao,
+          price: `R$ ${parseFloat(prato.preco).toFixed(2).replace('.', ',')}`,
+          image: prato.foto_prato,
+          rating: 4.5,
+          restaurant: prato.restaurante_nome,
+          categoryKey: "todos"
+        }));
+        setDishes(mappedDishes);
+      } catch (error) {
+        console.error("Erro ao carregar pratos:", error);
+        if (error.response && error.response.status === 401) {
+          navigate("/login");
+        }
+      }
+    };
+
+    fetchPratos();
+  }, [navigate]);
 
   // Resete de estado quando o restaurante principal muda
   useEffect(() => {
@@ -173,8 +207,8 @@ const TelaRestaurante = () => {
     const addressMatch = detailsObj.address?.toLowerCase().includes(term) || false;
 
     // Pratos do restaurante
-    const hasMatchingDish = DISHES.some(
-      (d) => d.restaurant.toLowerCase() === r.name.toLowerCase() && d.name.toLowerCase().includes(term)
+    const hasMatchingDish = dishes.some(
+      (d) => d.restaurant && d.restaurant.toLowerCase() === r.name.toLowerCase() && d.name.toLowerCase().includes(term)
     );
 
     return nameMatch || categoryMatch || locationMatch || descriptionMatch || addressMatch || hasMatchingDish;
@@ -232,8 +266,8 @@ const TelaRestaurante = () => {
     : restaurantePrincipal.rating;
 
   // Filtrar pratos do restaurante
-  const pratosDoRestaurante = DISHES.filter(
-    (dish) => dish.restaurant.toLowerCase() === restaurantePrincipal.name.toLowerCase()
+  const pratosDoRestaurante = dishes.filter(
+    (dish) => dish.restaurant && dish.restaurant.toLowerCase() === restaurantePrincipal.name.toLowerCase()
   );
 
   const comentariosExibidos = mostrarTodosComentarios ? listaComentarios : listaComentarios.slice(0, 2);

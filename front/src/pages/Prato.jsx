@@ -1,9 +1,10 @@
-import { useState ,useEffect} from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom"; 
-import { DISHES, REVIEWS } from "../mockData"; 
+import { REVIEWS } from "../mockData"; 
 import DishCard from "../components/DishCard";
 import AvaliarButton from "../components/AvaliarButton";
 import { useToast } from "../context/ToastContext";
+import { pratoService } from "../services/api";
 
 const Prato = () => {
   const location = useLocation();
@@ -11,11 +12,44 @@ const Prato = () => {
   const toast = useToast();
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState(false);
   const [listaComentarios, setListaComentarios] = useState(REVIEWS);
+  const [dishes, setDishes] = useState([]);
 
   // add: a pagina começa do topo 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchPratos = async () => {
+      try {
+        const data = await pratoService.listarPratos();
+        const mappedDishes = data.map(prato => ({
+          id: prato.id,
+          name: prato.nome,
+          description: prato.descricao,
+          price: `R$ ${parseFloat(prato.preco).toFixed(2).replace('.', ',')}`,
+          image: prato.foto_prato,
+          rating: 4.5,
+          restaurant: prato.restaurante_nome,
+          categoryKey: "todos"
+        }));
+        setDishes(mappedDishes);
+      } catch (error) {
+        console.error("Erro ao carregar pratos:", error);
+        if (error.response && error.response.status === 401) {
+          navigate("/login");
+        }
+      }
+    };
+
+    fetchPratos();
+  }, [navigate]);
 
   // calculo da media geral
   const mediaGeralDinamica = listaComentarios.length > 0 
@@ -30,8 +64,8 @@ const Prato = () => {
     restaurant: "Cantina Bella Italia"
   };
 
-  // Busca dados completos do prato no mockData para obter o preço correto
-  const pratoDoMock = DISHES.find(
+  // Busca dados completos do prato no state da API para obter o preço correto
+  const pratoDaApi = dishes.find(
     (d) => d.name === (location.state?.name || pratoPadrao.name)
   );
 
@@ -39,11 +73,11 @@ const Prato = () => {
     name: location.state?.name || pratoPadrao.name,
     restaurant: location.state?.restaurant || pratoPadrao.restaurant,
     image: location.state?.image || pratoPadrao.image,
-    price: location.state?.price || pratoDoMock?.price || pratoPadrao.price,
-    description: location.state?.description || pratoDoMock?.description || pratoPadrao.description
+    price: location.state?.price || pratoDaApi?.price || pratoPadrao.price,
+    description: location.state?.description || pratoDaApi?.description || pratoPadrao.description
   };
 
-  const recomendacoes = DISHES.filter(
+  const recomendacoes = dishes.filter(
     (dish) => dish.restaurant === pratoPrincipal.restaurant && dish.name !== pratoPrincipal.name
   ).slice(0, 5);
 

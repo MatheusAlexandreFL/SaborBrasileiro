@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "../components/button";
 import Input from "../components/input"; 
-import axios from "axios";
+import { authService } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import imgPrato1 from "../assets/prato1Login.avif";
 import imgPrato2 from "../assets/prato2Login.avif";
@@ -21,13 +21,10 @@ const Login = () => {
       setCarregando(true); 
       
       try {
-        const resposta = await axios.post("http://localhost:5000/login", {
-          email: email,
-          senha: senha
-        });
+        const data = await authService.login(email, senha);
 
-        const token = resposta.data.token;
-        const fotoPerfil = resposta.data.foto_perfil;
+        const token = data.token;
+        const fotoPerfil = data.foto_perfil;
         localStorage.setItem("token", token);
         localStorage.setItem("foto_perfil", fotoPerfil || "");
         navigate("/home");

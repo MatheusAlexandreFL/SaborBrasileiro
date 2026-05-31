@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "../components/button";
 import Input from "../components/input";
 import TipoUsuarioSeletor from "../components/tipoUsuarioSeletor";
-import axios from "axios";
+import { authService } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 import imgPrato1 from "../assets/prato1Login.avif";
@@ -36,7 +36,7 @@ const Cadastro = () => {
                 cnpj: tipoUsuario === "restaurante" ? cnpj : null 
             };
 
-            await axios.post("http://localhost:5000/cadastrar-teste", dadosCadastro);
+            await authService.cadastrar(dadosCadastro);
             setSucesso("Cadastro realizado com sucesso! Redirecionando...");
 
             setTimeout(() => {

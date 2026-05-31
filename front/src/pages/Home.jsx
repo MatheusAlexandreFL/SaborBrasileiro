@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { pratoService } from "../services/api";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import RestaurantCard from "../components/RestaurantCard";
 import DishCard from "../components/DishCard";
-import { CATEGORIES, RESTAURANTS, DISHES, HERO_COLLAGE } from "../mockData";
+import { CATEGORIES, RESTAURANTS, HERO_COLLAGE } from "../mockData";
 
 
 const Home = () => {
@@ -12,7 +13,40 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("Início");
+  const [dishes, setDishes] = useState([]);
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchPratos = async () => {
+      try {
+        const data = await pratoService.listarPratos();
+        const mappedDishes = data.map(prato => ({
+          id: prato.id,
+          name: prato.nome,
+          description: prato.descricao,
+          price: `R$ ${parseFloat(prato.preco).toFixed(2).replace('.', ',')}`,
+          image: prato.foto_prato,
+          rating: 4.5,
+          restaurant: prato.restaurante_nome,
+          categoryKey: "todos"
+        }));
+        setDishes(mappedDishes);
+      } catch (error) {
+        console.error("Erro ao carregar pratos:", error);
+        if (error.response && error.response.status === 401) {
+          navigate("/login");
+        }
+      }
+    };
+
+    fetchPratos();
+  }, [navigate]);
 
   const filteredRestaurants = RESTAURANTS.filter((r) => {
     const matchesCategory = selectedCategory === "all" || r.categoryKey === selectedCategory;
@@ -23,7 +57,7 @@ const Home = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const filteredDishes = DISHES.filter((d) => {
+  const filteredDishes = dishes.filter((d) => {
     const matchesCategory = selectedCategory === "all" || d.categoryKey === selectedCategory;
     const matchesSearch =
       d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
