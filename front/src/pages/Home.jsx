@@ -15,7 +15,6 @@ const Home = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("Início");
   const [dishes, setDishes] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");

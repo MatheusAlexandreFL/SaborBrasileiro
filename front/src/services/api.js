@@ -33,4 +33,19 @@ export const authService = {
   }
 };
 
+export const userService = {
+  getPerfil: async () => {
+    const response = await api.get("/usuarios/perfil");
+    return response.data;
+  },
+  updatePerfil: async (dados) => {
+    const response = await api.put("/usuarios/perfil", dados);
+    return response.data;
+  },
+  updateSenha: async (senhas) => {
+    const response = await api.put("/usuarios/perfil/senha", senhas);
+    return response.data;
+  }
+};
+
 export default api;
