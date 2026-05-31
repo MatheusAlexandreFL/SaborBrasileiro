@@ -49,8 +49,6 @@ async function updatePerfil(userId, dados) {
     if (Object.keys(dadosParaAtualizar).length === 0) {
         throw new Error('Nenhum dado para atualizar');
     }
-
-    // Validar unicidade do CNPJ se fornecido
     if (dadosParaAtualizar.cnpj) {
         const cnpjExistente = await database("usuarios")
             .where({ cnpj: dadosParaAtualizar.cnpj })
