@@ -11,6 +11,7 @@ import imgFundoLogin from "../assets/fundoLogin.avif";
 
 const Cadastro = () => {
     const [nome, setNome] = useState("");
+    const [nomeRestaurante, setNomeRestaurante] = useState("");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [tipoUsuario, setTipoUsuario] = useState("cliente");
@@ -33,7 +34,8 @@ const Cadastro = () => {
                 email,
                 senha,
                 tipoUsuario,
-                cnpj: tipoUsuario === "restaurante" ? cnpj : null 
+                cnpj: tipoUsuario === "restaurante" ? cnpj : null,
+                nome_restaurante: tipoUsuario === "restaurante" ? nomeRestaurante : null
             };
 
             await authService.cadastrar(dadosCadastro);
@@ -81,7 +83,10 @@ const Cadastro = () => {
                             <Input value={senha} label="Senha" type="password" onChange={(evento) => setSenha(evento.target.value)} />
                             
                             {tipoUsuario === "restaurante" && (
-                                <Input value={cnpj} label="CNPJ" type="text" onChange={(evento) => setCnpj(evento.target.value)} />
+                                <>
+                                    <Input value={nomeRestaurante} label="Nome do Restaurante" type="text" onChange={(evento) => setNomeRestaurante(evento.target.value)} />
+                                    <Input value={cnpj} label="CNPJ" type="text" onChange={(evento) => setCnpj(evento.target.value)} />
+                                </>
                             )}
 
                             {erro && (

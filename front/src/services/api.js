@@ -24,6 +24,10 @@ export const pratoService = {
   buscarPrato: async (id) => {
     const response = await api.get(`/pratos/${id}`);
     return response.data;
+  },
+  cadastrarPrato: async (dados) => {
+    const response = await api.post("/pratos", dados);
+    return response.data;
   }
 };
 

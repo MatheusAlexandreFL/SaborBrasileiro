@@ -16,10 +16,23 @@ const Home = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("Início");
   const [restaurants, setRestaurants] = useState([]);
+  const [tipoUsuario, setTipoUsuario] = useState("cliente");
+  const [showAllRestaurants, setShowAllRestaurants] = useState(false);
+  const [showAllDishes, setShowAllDishes] = useState(false);
   const { dishes } = usePratos();
 
   useEffect(() => {
-    const fetchRestaurantes = async () => {
+    const fetchDados = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const perfilApi = await import("../services/api").then(m => m.userService.getPerfil());
+          setTipoUsuario(perfilApi.tipoUsuario || "cliente");
+        }
+      } catch (error) {
+        console.error("Erro ao carregar perfil:", error);
+      }
+
       try {
         const data = await restaurantService.listar();
         const mapped = data.map(r => ({
@@ -37,7 +50,7 @@ const Home = () => {
       }
     };
 
-    fetchRestaurantes();
+    fetchDados();
   }, []);
 
   const filteredRestaurants = restaurants.filter((r) => {
@@ -47,7 +60,7 @@ const Home = () => {
       r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.location.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
-  });
+  }).sort((a, b) => b.rating - a.rating);
 
   const filteredDishes = dishes.filter((d) => {
     const matchesCategory = selectedCategory === "all" || d.categoryKey === selectedCategory;
@@ -55,7 +68,10 @@ const Home = () => {
       d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       d.restaurant.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
-  }).slice(0, 5);
+  }).sort((a, b) => b.rating - a.rating);
+
+  const restaurantsToDisplay = showAllRestaurants ? filteredRestaurants : filteredRestaurants.slice(0, 5);
+  const dishesToDisplay = showAllDishes ? filteredDishes : filteredDishes.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black">
@@ -82,6 +98,28 @@ const Home = () => {
             <p className="text-[18px] text-black/60 font-medium leading-relaxed max-w-[480px]">
               Descubra lugares incríveis, pratos inesquecíveis e experiências únicas.
             </p>
+            {tipoUsuario === "restaurante" && (
+              <div className="flex flex-wrap gap-3 mt-2">
+                <Link
+                  to="/restaurante"
+                  className="w-fit bg-[#C13D33] border border-transparent text-white font-bold text-[14px] px-5 py-2 rounded-[8px] no-underline hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 flex items-center gap-1.5 group"
+                >
+                  <span>Acessar meu Restaurante</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+                <Link
+                  to="/prato"
+                  className="w-fit bg-white border border-[#C13D33] text-[#C13D33] font-bold text-[14px] px-5 py-2 rounded-[8px] no-underline hover:bg-[#C13D33]/10 transition-colors shadow-xs active:scale-98 flex items-center gap-1.5 group"
+                >
+                  <span>Meus Pratos</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+              </div>
+            )}
           </div>
 
 
@@ -131,27 +169,29 @@ const Home = () => {
             <h2 className="font-serif text-[24px] md:text-[28px] font-extrabold text-black">
               Os restaurantes <span className="text-[#C13D33]">mais bem avaliados</span> da semana
             </h2>
-            <a
-              href="#"
-              className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group"
-            >
-              <span>Ver todos</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
-                stroke="currentColor"
-                className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+            {filteredRestaurants.length > 5 && (
+              <button
+                onClick={() => setShowAllRestaurants(!showAllRestaurants)}
+                className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group cursor-pointer bg-transparent border-none outline-none"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </a>
+                <span>{showAllRestaurants ? "Ver menos" : "Ver todos"}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </button>
+            )}
           </div>
 
-          {filteredRestaurants.length > 0 ? (
+          {restaurantsToDisplay.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {filteredRestaurants.map((restaurant, idx) => (
+              {restaurantsToDisplay.map((restaurant, idx) => (
                 <RestaurantCard
                   key={restaurant.id}
                   id={restaurant.id}
@@ -177,27 +217,29 @@ const Home = () => {
             <h2 className="font-serif text-[24px] md:text-[28px] font-extrabold text-black">
               Pratos em destaque
             </h2>
-            <a
-              href="#"
-              className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group"
-            >
-              <span>Ver todos</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
-                stroke="currentColor"
-                className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+            {filteredDishes.length > 5 && (
+              <button
+                onClick={() => setShowAllDishes(!showAllDishes)}
+                className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group cursor-pointer bg-transparent border-none outline-none"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </a>
+                <span>{showAllDishes ? "Ver menos" : "Ver todos"}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </button>
+            )}
           </div>
 
-          {filteredDishes.length > 0 ? (
+          {dishesToDisplay.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {filteredDishes.map((dish) => (
+              {dishesToDisplay.map((dish) => (
                 <DishCard
                   key={dish.id}
                   id={dish.id}

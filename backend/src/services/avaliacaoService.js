@@ -3,6 +3,13 @@ import database from '../database/exports.js';
 async function criar_avaliacao(dados) {
     const { id_usuario, id_restaurante, id_prato, nota, comentario } = dados;
 
+    if (id_restaurante) {
+        const restaurante = await database("restaurantes").where({ id: id_restaurante }).first();
+        if (restaurante && String(restaurante.usuario_id) === String(id_usuario)) {
+            throw new Error('Você não pode avaliar o seu próprio estabelecimento ou prato.');
+        }
+    }
+
     await database("avaliacoes").insert({
         id_usuario: id_usuario,
         id_prato: id_prato,
@@ -25,6 +32,9 @@ async function listar_avaliacoes(filtros) {
 
     if (filtros.id_restaurante) {
         query = query.where('avaliacoes.id_restaurante', filtros.id_restaurante);
+        if (filtros.apenas_restaurante) {
+            query = query.whereNull('avaliacoes.id_prato');
+        }
     }
     if (filtros.id_prato) {
         query = query.where('avaliacoes.id_prato', filtros.id_prato);

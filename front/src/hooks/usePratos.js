@@ -28,7 +28,7 @@ export default function usePratos(id_restaurante) {
           description: prato.descricao,
           price: `R$ ${parseFloat(prato.preco).toFixed(2).replace('.', ',')}`,
           image: prato.foto_prato,
-          rating: 4.5,
+          rating: parseFloat(prato.media_avaliacoes) || 0,
           restaurant: prato.restaurante_nome,
           restauranteId: prato.restaurante_id,
           categoryKey: "todos"
@@ -47,5 +47,28 @@ export default function usePratos(id_restaurante) {
     fetchPratos();
   }, [navigate, id_restaurante]);
 
-  return { dishes, loading };
+  const refetch = async () => {
+    try {
+      setLoading(true);
+      const data = await pratoService.listarPratos(id_restaurante);
+      const mappedDishes = data.map(prato => ({
+        id: prato.id,
+        name: prato.nome,
+        description: prato.descricao,
+        price: `R$ ${parseFloat(prato.preco).toFixed(2).replace('.', ',')}`,
+        image: prato.foto_prato,
+        rating: 4.5,
+        restaurant: prato.restaurante_nome,
+        restauranteId: prato.restaurante_id,
+        categoryKey: "todos"
+      }));
+      setDishes(mappedDishes);
+    } catch (error) {
+      console.error("Erro ao carregar pratos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { dishes, loading, refetch };
 }
