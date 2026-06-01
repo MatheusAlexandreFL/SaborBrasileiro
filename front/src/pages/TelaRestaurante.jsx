@@ -171,8 +171,8 @@ const TelaRestaurante = () => {
         const avaliacoes = await avaliacaoService.listar({ id_restaurante: restId });
         setListaComentarios(avaliacoes.map(av => ({
            id: av.id,
-           nome: av.nome_usuario || "Usuário",
-           iniciais: av.nome_usuario ? av.nome_usuario.substring(0,2).toUpperCase() : "US",
+           nome: av.usuario_nome || "Usuário",
+           iniciais: av.usuario_nome ? av.usuario_nome.substring(0,2).toUpperCase() : "US",
            nota: parseFloat(av.nota),
            texto: av.comentario
         })));
@@ -275,8 +275,8 @@ const TelaRestaurante = () => {
 
     try {
       const novaAvaliacao = await avaliacaoService.criar({
-         id_restaurante: restaurantePrincipal.id,
-         nota: nota,
+         id_restaurante: parseInt(restaurantePrincipal.id, 10),
+         nota: parseFloat(nota),
          comentario: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
       });
       
