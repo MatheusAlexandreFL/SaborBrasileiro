@@ -1,11 +1,18 @@
 import database from '../database/exports.js';
 
-async function cadastrar_prato(nome, descricao, preco, foto, usuario_id) {
-    let restaurante = await database('restaurantes').where({ usuario_id: usuario_id }).first();
+async function cadastrar_prato(nome, descricao, preco, foto, usuario_id, restaurante_id) {
+    let restaurante;
+    
+    if (restaurante_id) {
+        restaurante = await database('restaurantes').where({ id: restaurante_id, usuario_id: usuario_id }).first();
+    } else {
+        restaurante = await database('restaurantes').where({ usuario_id: usuario_id }).first();
+    }
+    
     if (!restaurante) {
         const usuario = await database('usuarios').where({ id: usuario_id }).first();
         if (usuario && usuario.tipoUsuario === 'restaurante') {
-            const [restauranteId] = await database("restaurantes").insert({
+            const [newRestauranteId] = await database("restaurantes").insert({
                 usuario_id: usuario_id,
                 nome: usuario.nome,
                 categoria: 'Outros',
@@ -13,7 +20,7 @@ async function cadastrar_prato(nome, descricao, preco, foto, usuario_id) {
                 cidade: 'Não informado',
                 estado: 'NI'
             });
-            restaurante = { id: restauranteId };
+            restaurante = { id: newRestauranteId };
         } else {
             throw new Error('Nenhum restaurante encontrado associado a este usuário.');
         }

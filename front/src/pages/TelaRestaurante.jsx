@@ -123,9 +123,11 @@ const TelaRestaurante = () => {
     }
   }, [location.state]);
 
+  const [meusRestaurantesIds, setMeusRestaurantesIds] = useState([]);
+
   // Se não vier do state (refresh direto na página com id), o useEffect busca.
   const restaurantePrincipal = restauranteInfo || {
-    id: id || meuRestauranteId,
+    id: id || (meusRestaurantesIds.length > 0 ? meusRestaurantesIds[0] : null),
     name: "Carregando...",
     rating: 0,
     category: "...",
@@ -154,7 +156,6 @@ const TelaRestaurante = () => {
   const [hoverNota, setHoverNota] = useState(0);
   const [comentario, setComentario] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
-  const [meuRestauranteId, setMeuRestauranteId] = useState(null);
   const [meuUserId, setMeuUserId] = useState(null);
   const [meuNome, setMeuNome] = useState("");
   const [isFetchingUser, setIsFetchingUser] = useState(true);
@@ -170,8 +171,8 @@ const TelaRestaurante = () => {
           setTipoUsuario(data.tipoUsuario || "cliente");
           setMeuUserId(data.id);
           setMeuNome(data.nome);
-          if (data.restaurante_id) {
-             setMeuRestauranteId(data.restaurante_id);
+          if (data.restaurante_ids) {
+             setMeusRestaurantesIds(data.restaurante_ids);
           }
         }
       } catch (e) {
@@ -187,7 +188,7 @@ const TelaRestaurante = () => {
     const fetchDados = async () => {
       if (!id && isFetchingUser) return; // Wait for user check if no ID
       
-      const restId = id || meuRestauranteId;
+      const restId = id || (meusRestaurantesIds.length > 0 ? meusRestaurantesIds[0] : null);
       if (!restId) return;
       
       try {
@@ -225,7 +226,7 @@ const TelaRestaurante = () => {
     
     fetchDados();
     window.scrollTo(0, 0);
-  }, [id, meuRestauranteId, isFetchingUser, restauranteInfo]);
+  }, [id, meusRestaurantesIds, isFetchingUser, restauranteInfo]);
 
 
 
@@ -270,7 +271,7 @@ const TelaRestaurante = () => {
 
   const comentariosExibidos = mostrarTodosComentarios ? listaComentarios : listaComentarios.slice(0, 2);
 
-  if (!id && !meuRestauranteId && !isFetchingUser) {
+  if (!id && meusRestaurantesIds.length === 0 && !isFetchingUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-xl shadow-lg text-center">
@@ -493,7 +494,7 @@ const TelaRestaurante = () => {
         <section className="bg-white rounded-[24px] shadow-lg p-6 sm:p-10 border border-black/5 flex flex-col gap-8">
 
 
-          {(!meuRestauranteId || String(meuRestauranteId) !== String(restaurantePrincipal.id)) && (
+          {(!meusRestaurantesIds.includes(Number(restaurantePrincipal.id))) && (
             <form onSubmit={handleEnviarAvaliacao} className="w-full bg-[#F8EDDB]/20 border border-black/10 rounded-[16px] p-6 flex flex-col gap-4">
               <div>
                 <h2 className="font-serif text-[18px] sm:text-[20px] font-extrabold text-black">

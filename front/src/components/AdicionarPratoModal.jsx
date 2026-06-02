@@ -1,17 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Input from "./input";
 import Button from "./button";
 import { pratoService } from "../services/api";
 import { useToast } from "../context/ToastContext";
 
-const AdicionarPratoModal = ({ onPratoAdicionado }) => {
+const AdicionarPratoModal = ({ onPratoAdicionado, restaurantes = [], restauranteIdInicial }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [restauranteIdSelecionado, setRestauranteIdSelecionado] = useState(restauranteIdInicial || (restaurantes.length > 0 ? restaurantes[0].id : ""));
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("");
   const [foto, setFoto] = useState("");
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    if (restauranteIdInicial) {
+      setRestauranteIdSelecionado(restauranteIdInicial);
+    }
+  }, [restauranteIdInicial]);
 
   const handleSalvar = async (e) => {
     e.preventDefault();
@@ -22,7 +29,13 @@ const AdicionarPratoModal = ({ onPratoAdicionado }) => {
 
     try {
       setLoading(true);
-      const res = await pratoService.cadastrarPrato({ nome, descricao, preco, foto });
+      const res = await pratoService.cadastrarPrato({ 
+        nome, 
+        descricao, 
+        preco, 
+        foto, 
+        restaurante_id: restauranteIdSelecionado 
+      });
       toast.success("Prato adicionado com sucesso!");
       setNome("");
       setDescricao("");
@@ -67,6 +80,23 @@ const AdicionarPratoModal = ({ onPratoAdicionado }) => {
             </div>
 
             <form onSubmit={handleSalvar} className="flex flex-col gap-4">
+              {restaurantes.length > 1 && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[13px] font-bold text-black/40 uppercase tracking-wider">
+                    Restaurante
+                  </label>
+                  <select
+                    value={restauranteIdSelecionado}
+                    onChange={(e) => setRestauranteIdSelecionado(e.target.value)}
+                    className="w-full h-[48px] bg-neutral-100 rounded-[15px] px-4 text-[15px] border-none focus:ring-2 focus:ring-[#C13D33] outline-none font-bold text-black"
+                  >
+                    {restaurantes.map(r => (
+                      <option key={r.id} value={r.id}>{r.nome}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <Input
                 label="Nome do Prato"
                 value={nome}

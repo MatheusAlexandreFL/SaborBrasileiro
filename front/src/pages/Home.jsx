@@ -17,6 +17,9 @@ const Home = () => {
   const [activeItem, setActiveItem] = useState("Início");
   const [restaurants, setRestaurants] = useState([]);
   const [tipoUsuario, setTipoUsuario] = useState("cliente");
+  const [meusRestaurantes, setMeusRestaurantes] = useState([]);
+  const [showMeusRestaurantesDropdown, setShowMeusRestaurantesDropdown] = useState(false);
+  const [showMeusPratosDropdown, setShowMeusPratosDropdown] = useState(false);
   const [showAllRestaurants, setShowAllRestaurants] = useState(false);
   const [showAllDishes, setShowAllDishes] = useState(false);
   const { dishes } = usePratos();
@@ -28,22 +31,41 @@ const Home = () => {
         if (token) {
           const perfilApi = await import("../services/api").then(m => m.userService.getPerfil());
           setTipoUsuario(perfilApi.tipoUsuario || "cliente");
+          if (perfilApi.restaurantes) setMeusRestaurantes(perfilApi.restaurantes);
         }
       } catch (error) {
         console.error("Erro ao carregar perfil:", error);
       }
 
       try {
-        const data = await restaurantService.listar();
-        const mapped = data.map(r => ({
-          id: r.id,
-          name: r.nome,
-          rating: parseFloat(r.nota) || 0,
-          category: r.categoria,
-          categoryKey: r.categoria?.toLowerCase().split(" ")[0] || "todos",
-          location: `${r.cidade}, ${r.estado}`,
-          image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60"
-        }));
+        const { avaliacaoService } = await import("../services/api");
+        const [data, todasAvaliacoes] = await Promise.all([
+          restaurantService.listar(),
+          avaliacaoService.listar({})
+        ]);
+
+        const medias = {};
+        todasAvaliacoes.forEach(av => {
+            if (!av.id_prato && av.id_restaurante) {
+                if (!medias[av.id_restaurante]) medias[av.id_restaurante] = { sum: 0, count: 0 };
+                medias[av.id_restaurante].sum += parseFloat(av.nota);
+                medias[av.id_restaurante].count++;
+            }
+        });
+
+        const mapped = data.map(r => {
+          const m = medias[r.id];
+          const notaDinamica = m && m.count > 0 ? (m.sum / m.count) : (parseFloat(r.nota) || 0);
+          return {
+            id: r.id,
+            name: r.nome,
+            rating: notaDinamica,
+            category: r.categoria,
+            categoryKey: r.categoria?.toLowerCase().split(" ")[0] || "todos",
+            location: `${r.cidade}, ${r.estado}`,
+            image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60"
+          };
+        });
         setRestaurants(mapped);
       } catch (error) {
         console.error("Erro ao carregar restaurantes:", error);
@@ -63,7 +85,8 @@ const Home = () => {
   }).sort((a, b) => b.rating - a.rating);
 
   const filteredDishes = dishes.filter((d) => {
-    const matchesCategory = selectedCategory === "all" || d.categoryKey === selectedCategory;
+    const parentRestaurant = restaurants.find(r => String(r.id) === String(d.restauranteId));
+    const matchesCategory = selectedCategory === "all" || (parentRestaurant && parentRestaurant.categoryKey === selectedCategory);
     const matchesSearch =
       d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       d.restaurant.toLowerCase().includes(searchQuery.toLowerCase());
@@ -100,27 +123,89 @@ const Home = () => {
             </p>
             {tipoUsuario === "restaurante" && (
               <div className="flex flex-wrap gap-3 mt-2">
-                <Link
-                  to="/restaurante"
-                  className="w-fit bg-[#C13D33] border border-transparent text-white font-bold text-[14px] px-5 py-2 rounded-[8px] no-underline hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 flex items-center gap-1.5 group"
-                >
-                  <span>Acessar meu Restaurante</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                  </svg>
-                </Link>
-                <Link
-                  to="/prato"
-                  className="w-fit bg-white border border-[#C13D33] text-[#C13D33] font-bold text-[14px] px-5 py-2 rounded-[8px] no-underline hover:bg-[#C13D33]/10 transition-colors shadow-xs active:scale-98 flex items-center gap-1.5 group"
-                >
-                  <span>Meus Pratos</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                  </svg>
-                </Link>
+                {meusRestaurantes.length > 0 ? (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowMeusRestaurantesDropdown(!showMeusRestaurantesDropdown)}
+                      className="w-fit bg-[#C13D33] border border-transparent text-white font-bold text-[14px] px-5 py-2 rounded-[8px] outline-none cursor-pointer hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 flex items-center gap-1.5"
+                    >
+                      <span>Meus Restaurantes</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-3.5 h-3.5 transition-transform duration-200 ${showMeusRestaurantesDropdown ? "rotate-180" : ""}`}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+
+                    {showMeusRestaurantesDropdown && (
+                      <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-black/10 rounded-[12px] shadow-xl z-50 flex flex-col py-1 overflow-hidden">
+                        {meusRestaurantes.map(rest => (
+                          <Link
+                            key={rest.id}
+                            to={`/restaurante/${rest.id}`}
+                            className="px-4 py-3 text-[14px] font-bold text-black/80 hover:bg-[#F5E6CA]/30 hover:text-[#C13D33] transition-colors whitespace-nowrap overflow-hidden text-ellipsis no-underline flex items-center justify-between group"
+                          >
+                            <span className="truncate">{rest.nome}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#C13D33] shrink-0">
+                               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                            </svg>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    to="/perfil"
+                    className="w-fit bg-[#C13D33] border border-transparent text-white font-bold text-[14px] px-5 py-2 rounded-[8px] no-underline hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 flex items-center gap-1.5 group"
+                  >
+                    <span>Configurar Restaurante</span>
+                  </Link>
+                )}
+                
+                {meusRestaurantes.length > 0 ? (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowMeusPratosDropdown(!showMeusPratosDropdown)}
+                      className="w-fit bg-white border border-[#C13D33] text-[#C13D33] font-bold text-[14px] px-5 py-2 rounded-[8px] outline-none cursor-pointer hover:bg-[#C13D33]/10 transition-colors shadow-xs active:scale-98 flex items-center gap-1.5"
+                    >
+                      <span>Meus Pratos</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-3.5 h-3.5 transition-transform duration-200 ${showMeusPratosDropdown ? "rotate-180" : ""}`}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+
+                    {showMeusPratosDropdown && (
+                      <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-black/10 rounded-[12px] shadow-xl z-50 flex flex-col py-1 overflow-hidden">
+                        {meusRestaurantes.map(rest => (
+                          <Link
+                            key={rest.id}
+                            to={`/prato`}
+                            state={{ restauranteId: rest.id }}
+                            className="px-4 py-3 text-[14px] font-bold text-black/80 hover:bg-[#F5E6CA]/30 hover:text-[#C13D33] transition-colors whitespace-nowrap overflow-hidden text-ellipsis no-underline flex items-center justify-between group"
+                          >
+                            <span className="truncate">{rest.nome}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#C13D33] shrink-0">
+                               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                            </svg>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    to="/prato"
+                    className="w-fit bg-white border border-[#C13D33] text-[#C13D33] font-bold text-[14px] px-5 py-2 rounded-[8px] no-underline hover:bg-[#C13D33]/10 transition-colors shadow-xs active:scale-98 flex items-center gap-1.5 group"
+                  >
+                    <span>Meus Pratos</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                  </Link>
+                )}
               </div>
             )}
           </div>
+
 
 
           <div className="lg:col-span-6 flex justify-end">
@@ -169,7 +254,7 @@ const Home = () => {
             <h2 className="font-serif text-[24px] md:text-[28px] font-extrabold text-black">
               Os restaurantes <span className="text-[#C13D33]">mais bem avaliados</span> da semana
             </h2>
-            {filteredRestaurants.length > 5 && (
+            {filteredRestaurants.length > 0 && (
               <button
                 onClick={() => setShowAllRestaurants(!showAllRestaurants)}
                 className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group cursor-pointer bg-transparent border-none outline-none"
@@ -217,7 +302,7 @@ const Home = () => {
             <h2 className="font-serif text-[24px] md:text-[28px] font-extrabold text-black">
               Pratos em destaque
             </h2>
-            {filteredDishes.length > 5 && (
+            {filteredDishes.length > 0 && (
               <button
                 onClick={() => setShowAllDishes(!showAllDishes)}
                 className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group cursor-pointer bg-transparent border-none outline-none"

@@ -64,13 +64,18 @@ async function getPerfil(userId) {
     }
 
     if (usuario.tipoUsuario?.toLowerCase() === 'restaurante' || usuario.tipoUsuario?.toLowerCase() === 'dono') {
-        const restaurante = await database("restaurantes")
+        const restaurantes = await database("restaurantes")
             .select('id', 'nome', 'descricao', 'categoria', 'endereco', 'cidade', 'estado', 'telefone', 'imagem_url')
-            .where({ usuario_id: userId })
-            .first();
-        if (restaurante) {
-            usuario.restaurante_id = restaurante.id;
-            usuario.restaurante = restaurante;
+            .where({ usuario_id: userId });
+        if (restaurantes.length > 0) {
+            usuario.restaurantes = restaurantes;
+            usuario.restaurante_ids = restaurantes.map(r => r.id);
+            // Manter as chaves singulares para não quebrar componentes que ainda não foram atualizados
+            usuario.restaurante_id = restaurantes[0].id;
+            usuario.restaurante = restaurantes[0];
+        } else {
+            usuario.restaurantes = [];
+            usuario.restaurante_ids = [];
         }
     }
 
@@ -101,26 +106,8 @@ async function updatePerfil(userId, dados) {
         await database("usuarios").where({ id: userId }).update(dadosParaAtualizar);
     }
 
-    const usuario = await database("usuarios").select("tipoUsuario").where({ id: userId }).first();
-
-    if (usuario && usuario.tipoUsuario === 'restaurante') {
-        const camposPermitidosRest = ['nome_restaurante', 'descricao', 'categoria', 'endereco', 'cidade', 'estado', 'telefone', 'imagem_url'];
-        const dadosRestaurante = {};
-
-        for (const campo of camposPermitidosRest) {
-            if (dados[campo] !== undefined) {
-                if (campo === 'nome_restaurante') {
-                    dadosRestaurante.nome = dados[campo] || "Não informado";
-                } else {
-                    dadosRestaurante[campo] = dados[campo];
-                }
-            }
-        }
-
-        if (Object.keys(dadosRestaurante).length > 0) {
-            await database("restaurantes").where({ usuario_id: userId }).update(dadosRestaurante);
-        }
-    }
+    // A atualização de restaurantes agora é feita diretamente nos endpoints de restaurantes
+    // devido ao suporte de múltiplos restaurantes por dono.
 
     return await getPerfil(userId);
 }

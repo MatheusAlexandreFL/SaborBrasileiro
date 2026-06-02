@@ -17,10 +17,17 @@ const Prato = () => {
   const [listaComentarios, setListaComentarios] = useState([]);
   const [pratoInfo, setPratoInfo] = useState(location.state || null);
   const [tipoUsuario, setTipoUsuario] = useState("cliente");
-  const [meuRestauranteId, setMeuRestauranteId] = useState(null);
+  const [meusRestaurantesIds, setMeusRestaurantesIds] = useState([]);
+  const [meusRestaurantes, setMeusRestaurantes] = useState([]);
   const [meuUserId, setMeuUserId] = useState(null);
   const [meuNome, setMeuNome] = useState("");
   
+  useEffect(() => {
+    if (location.state) {
+      setPratoInfo(location.state);
+    }
+  }, [location.state]);
+
   const { dishes, refetch } = usePratos(pratoInfo?.restauranteId); // Para as recomendações
 
   const handlePratoAdicionado = async (newPratoId) => {
@@ -57,8 +64,11 @@ const Prato = () => {
           setTipoUsuario(data.tipoUsuario || "cliente");
           setMeuUserId(data.id);
           setMeuNome(data.nome);
-          if (data.restaurante_id) {
-             setMeuRestauranteId(data.restaurante_id);
+          if (data.restaurante_ids) {
+             setMeusRestaurantesIds(data.restaurante_ids);
+          }
+          if (data.restaurantes) {
+             setMeusRestaurantes(data.restaurantes);
           }
         }
       } catch (e) {
@@ -71,8 +81,9 @@ const Prato = () => {
   useEffect(() => {
     const fetchDados = async () => {
       // Auto-load latest dish for restaurant owner if no ID is provided
-      if (!id && !pratoInfo && meuRestauranteId && dishes.length > 0) {
-        const myDishes = dishes.filter(d => d.restauranteId === meuRestauranteId);
+      if (!id && (!pratoInfo || !pratoInfo.id) && meusRestaurantesIds.length > 0 && dishes.length > 0) {
+        const targetRestId = pratoInfo?.restauranteId ? Number(pratoInfo.restauranteId) : Number(meusRestaurantesIds[0]);
+        const myDishes = dishes.filter(d => Number(d.restauranteId) === targetRestId);
         if (myDishes.length > 0) {
           // O usuário prefere que o PRIMEIRO prato fique em destaque sempre
           const firstDish = myDishes[0];
@@ -126,20 +137,20 @@ const Prato = () => {
       }
     };
     fetchDados();
-  }, [id, pratoInfo, meuRestauranteId, dishes]);
+  }, [id, pratoInfo, meusRestaurantesIds, dishes]);
 
   // calculo da media geral
   const mediaGeralDinamica = listaComentarios.length > 0 
     ? listaComentarios.reduce((soma, comentario) => soma + comentario.nota, 0) / listaComentarios.length 
     : 0;
 
-  const pratoPrincipal = pratoInfo || {
-    name: "Carregando...",
-    price: "...",
-    description: "...",
-    image: "",
+  const pratoPrincipal = (pratoInfo && pratoInfo.id) ? pratoInfo : {
+    name: "Aguardando pratos...",
+    price: "---",
+    description: "Nenhum prato cadastrado para este restaurante ainda.",
+    image: "https://via.placeholder.com/800x600?text=Sem+Pratos",
     restaurant: "...",
-    restauranteId: null
+    restauranteId: pratoInfo?.restauranteId || null
   };
 
   const recomendacoes = dishes.filter(
@@ -209,7 +220,7 @@ const Prato = () => {
 
             {/* nova posição para o botão de avaliação */}
             <div className="mt-4 flex flex-col sm:flex-row justify-start gap-4">
-              {(!meuRestauranteId || String(meuRestauranteId) !== String(pratoPrincipal.restauranteId)) && (
+              {(!meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId))) && (
                 <div className="w-full sm:w-[320px]">
                   <AvaliarButton 
                     tipo="prato" 
@@ -218,9 +229,13 @@ const Prato = () => {
                   />
                 </div>
               )}
-              {tipoUsuario === "restaurante" && String(pratoPrincipal.restauranteId) === String(meuRestauranteId) && (
+              {tipoUsuario === "restaurante" && meusRestaurantes.length > 0 && (
                 <div className="w-full sm:w-[320px]">
-                  <AdicionarPratoModal onPratoAdicionado={handlePratoAdicionado} />
+                  <AdicionarPratoModal 
+                    onPratoAdicionado={handlePratoAdicionado} 
+                    restaurantes={meusRestaurantes}
+                    restauranteIdInicial={meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId)) ? pratoPrincipal.restauranteId : meusRestaurantes[0].id}
+                  />
                 </div>
               )}
             </div>
