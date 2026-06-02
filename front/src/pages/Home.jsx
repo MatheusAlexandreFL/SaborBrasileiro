@@ -16,28 +16,63 @@ const Home = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("Início");
   const [restaurants, setRestaurants] = useState([]);
+  const [tipoUsuario, setTipoUsuario] = useState("cliente");
+  const [meusRestaurantes, setMeusRestaurantes] = useState([]);
+  const [showMeusRestaurantesDropdown, setShowMeusRestaurantesDropdown] = useState(false);
+  const [showMeusPratosDropdown, setShowMeusPratosDropdown] = useState(false);
+  const [showAllRestaurants, setShowAllRestaurants] = useState(false);
+  const [showAllDishes, setShowAllDishes] = useState(false);
   const { dishes } = usePratos();
 
   useEffect(() => {
-    const fetchRestaurantes = async () => {
+    const fetchDados = async () => {
       try {
-        const data = await restaurantService.listar();
-        const mapped = data.map(r => ({
-          id: r.id,
-          name: r.nome,
-          rating: parseFloat(r.nota) || 0,
-          category: r.categoria,
-          categoryKey: r.categoria?.toLowerCase().split(" ")[0] || "todos",
-          location: `${r.cidade}, ${r.estado}`,
-          image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60"
-        }));
+        const token = localStorage.getItem("token");
+        if (token) {
+          const perfilApi = await import("../services/api").then(m => m.userService.getPerfil());
+          setTipoUsuario(perfilApi.tipoUsuario || "cliente");
+          if (perfilApi.restaurantes) setMeusRestaurantes(perfilApi.restaurantes);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar perfil:", error);
+      }
+
+      try {
+        const { avaliacaoService } = await import("../services/api");
+        const [data, todasAvaliacoes] = await Promise.all([
+          restaurantService.listar(),
+          avaliacaoService.listar({})
+        ]);
+
+        const medias = {};
+        todasAvaliacoes.forEach(av => {
+            if (!av.id_prato && av.id_restaurante) {
+                if (!medias[av.id_restaurante]) medias[av.id_restaurante] = { sum: 0, count: 0 };
+                medias[av.id_restaurante].sum += parseFloat(av.nota);
+                medias[av.id_restaurante].count++;
+            }
+        });
+
+        const mapped = data.map(r => {
+          const m = medias[r.id];
+          const notaDinamica = m && m.count > 0 ? (m.sum / m.count) : (parseFloat(r.nota) || 0);
+          return {
+            id: r.id,
+            name: r.nome,
+            rating: notaDinamica,
+            category: r.categoria,
+            categoryKey: r.categoria?.toLowerCase().split(" ")[0] || "todos",
+            location: `${r.cidade}, ${r.estado}`,
+            image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60"
+          };
+        });
         setRestaurants(mapped);
       } catch (error) {
         console.error("Erro ao carregar restaurantes:", error);
       }
     };
 
-    fetchRestaurantes();
+    fetchDados();
   }, []);
 
   const filteredRestaurants = restaurants.filter((r) => {
@@ -47,15 +82,19 @@ const Home = () => {
       r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.location.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
-  });
+  }).sort((a, b) => b.rating - a.rating);
 
   const filteredDishes = dishes.filter((d) => {
-    const matchesCategory = selectedCategory === "all" || d.categoryKey === selectedCategory;
+    const parentRestaurant = restaurants.find(r => String(r.id) === String(d.restauranteId));
+    const matchesCategory = selectedCategory === "all" || (parentRestaurant && parentRestaurant.categoryKey === selectedCategory);
     const matchesSearch =
       d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       d.restaurant.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
-  }).slice(0, 5);
+  }).sort((a, b) => b.rating - a.rating);
+
+  const restaurantsToDisplay = showAllRestaurants ? filteredRestaurants : filteredRestaurants.slice(0, 5);
+  const dishesToDisplay = showAllDishes ? filteredDishes : filteredDishes.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black">
@@ -82,7 +121,91 @@ const Home = () => {
             <p className="text-[18px] text-black/60 font-medium leading-relaxed max-w-[480px]">
               Descubra lugares incríveis, pratos inesquecíveis e experiências únicas.
             </p>
+            {tipoUsuario === "restaurante" && (
+              <div className="flex flex-wrap gap-3 mt-2">
+                {meusRestaurantes.length > 0 ? (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowMeusRestaurantesDropdown(!showMeusRestaurantesDropdown)}
+                      className="w-fit bg-[#C13D33] border border-transparent text-white font-bold text-[14px] px-5 py-2 rounded-[8px] outline-none cursor-pointer hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 flex items-center gap-1.5"
+                    >
+                      <span>Meus Restaurantes</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-3.5 h-3.5 transition-transform duration-200 ${showMeusRestaurantesDropdown ? "rotate-180" : ""}`}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+
+                    {showMeusRestaurantesDropdown && (
+                      <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-black/10 rounded-[12px] shadow-xl z-50 flex flex-col py-1 overflow-hidden">
+                        {meusRestaurantes.map(rest => (
+                          <Link
+                            key={rest.id}
+                            to={`/restaurante/${rest.id}`}
+                            className="px-4 py-3 text-[14px] font-bold text-black/80 hover:bg-[#F5E6CA]/30 hover:text-[#C13D33] transition-colors whitespace-nowrap overflow-hidden text-ellipsis no-underline flex items-center justify-between group"
+                          >
+                            <span className="truncate">{rest.nome}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#C13D33] shrink-0">
+                               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                            </svg>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    to="/perfil"
+                    className="w-fit bg-[#C13D33] border border-transparent text-white font-bold text-[14px] px-5 py-2 rounded-[8px] no-underline hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 flex items-center gap-1.5 group"
+                  >
+                    <span>Configurar Restaurante</span>
+                  </Link>
+                )}
+                
+                {meusRestaurantes.length > 0 ? (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowMeusPratosDropdown(!showMeusPratosDropdown)}
+                      className="w-fit bg-white border border-[#C13D33] text-[#C13D33] font-bold text-[14px] px-5 py-2 rounded-[8px] outline-none cursor-pointer hover:bg-[#C13D33]/10 transition-colors shadow-xs active:scale-98 flex items-center gap-1.5"
+                    >
+                      <span>Meus Pratos</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-3.5 h-3.5 transition-transform duration-200 ${showMeusPratosDropdown ? "rotate-180" : ""}`}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+
+                    {showMeusPratosDropdown && (
+                      <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-black/10 rounded-[12px] shadow-xl z-50 flex flex-col py-1 overflow-hidden">
+                        {meusRestaurantes.map(rest => (
+                          <Link
+                            key={rest.id}
+                            to={`/prato`}
+                            state={{ restauranteId: rest.id }}
+                            className="px-4 py-3 text-[14px] font-bold text-black/80 hover:bg-[#F5E6CA]/30 hover:text-[#C13D33] transition-colors whitespace-nowrap overflow-hidden text-ellipsis no-underline flex items-center justify-between group"
+                          >
+                            <span className="truncate">{rest.nome}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#C13D33] shrink-0">
+                               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                            </svg>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    to="/prato"
+                    className="w-fit bg-white border border-[#C13D33] text-[#C13D33] font-bold text-[14px] px-5 py-2 rounded-[8px] no-underline hover:bg-[#C13D33]/10 transition-colors shadow-xs active:scale-98 flex items-center gap-1.5 group"
+                  >
+                    <span>Meus Pratos</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
+
 
 
           <div className="lg:col-span-6 flex justify-end">
@@ -131,27 +254,29 @@ const Home = () => {
             <h2 className="font-serif text-[24px] md:text-[28px] font-extrabold text-black">
               Os restaurantes <span className="text-[#C13D33]">mais bem avaliados</span> da semana
             </h2>
-            <a
-              href="#"
-              className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group"
-            >
-              <span>Ver todos</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
-                stroke="currentColor"
-                className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+            {filteredRestaurants.length > 0 && (
+              <button
+                onClick={() => setShowAllRestaurants(!showAllRestaurants)}
+                className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group cursor-pointer bg-transparent border-none outline-none"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </a>
+                <span>{showAllRestaurants ? "Ver menos" : "Ver todos"}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </button>
+            )}
           </div>
 
-          {filteredRestaurants.length > 0 ? (
+          {restaurantsToDisplay.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {filteredRestaurants.map((restaurant, idx) => (
+              {restaurantsToDisplay.map((restaurant, idx) => (
                 <RestaurantCard
                   key={restaurant.id}
                   id={restaurant.id}
@@ -177,27 +302,29 @@ const Home = () => {
             <h2 className="font-serif text-[24px] md:text-[28px] font-extrabold text-black">
               Pratos em destaque
             </h2>
-            <a
-              href="#"
-              className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group"
-            >
-              <span>Ver todos</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
-                stroke="currentColor"
-                className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+            {filteredDishes.length > 0 && (
+              <button
+                onClick={() => setShowAllDishes(!showAllDishes)}
+                className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group cursor-pointer bg-transparent border-none outline-none"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </a>
+                <span>{showAllDishes ? "Ver menos" : "Ver todos"}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </button>
+            )}
           </div>
 
-          {filteredDishes.length > 0 ? (
+          {dishesToDisplay.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {filteredDishes.map((dish) => (
+              {dishesToDisplay.map((dish) => (
                 <DishCard
                   key={dish.id}
                   id={dish.id}
@@ -217,108 +344,110 @@ const Home = () => {
         </section>
 
         {/* CALL TO ACTION (CTA) SECTION */}
-        <section className="bg-white rounded-[24px] border border-black/5 overflow-hidden shadow-xs hover:shadow-md transition-shadow duration-300 p-8 md:p-12 mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+        {tipoUsuario !== "cliente" && (
+          <section className="bg-white rounded-[24px] border border-black/5 overflow-hidden shadow-xs hover:shadow-md transition-shadow duration-300 p-8 md:p-12 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
 
-            {/* Left Copywriting */}
-            <div className="md:col-span-7 flex flex-col gap-4 text-left">
-              <h2 className="font-serif text-[32px] md:text-[36px] font-extrabold text-black leading-tight">
-                Tem um restaurante?
-              </h2>
-              <p className="text-[16px] text-black/60 font-medium leading-relaxed max-w-[480px]">
-                Cadastre seu restaurante, adicione fotos do ambiente e dos pratos e faça parte da nossa comunidade!
-              </p>
-              <Link
-                to="/cadastro"
-                className="w-fit mt-4 bg-[#C13D33] text-white font-bold text-[15px] px-8 py-3.5 rounded-[8px] no-underline hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 flex items-center gap-2 group"
-              >
-                <span>Cadastrar restaurante</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2.5}
-                  stroke="currentColor"
-                  className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+              {/* Left Copywriting */}
+              <div className="md:col-span-7 flex flex-col gap-4 text-left">
+                <h2 className="font-serif text-[32px] md:text-[36px] font-extrabold text-black leading-tight">
+                  Tem um restaurante?
+                </h2>
+                <p className="text-[16px] text-black/60 font-medium leading-relaxed max-w-[480px]">
+                  Cadastre seu restaurante, adicione fotos do ambiente e dos pratos e faça parte da nossa comunidade!
+                </p>
+                <Link
+                  to="/cadastro"
+                  className="w-fit mt-4 bg-[#C13D33] text-white font-bold text-[15px] px-8 py-3.5 rounded-[8px] no-underline hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 flex items-center gap-2 group"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  <span>Cadastrar restaurante</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2.5}
+                    stroke="currentColor"
+                    className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+              </div>
+
+              {/* Right Graphic/Illustration */}
+              <div className="md:col-span-5 flex justify-center md:justify-end">
+                <svg
+                  width="340"
+                  height="220"
+                  viewBox="0 0 340 220"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full max-w-[340px]"
+                >
+                  {/* Storefront background */}
+                  <rect x="180" y="80" width="140" height="120" rx="12" fill="#F8EDDB" stroke="#E7CC9F" strokeWidth="3" />
+
+                  {/* Store door */}
+                  <rect x="205" y="130" width="35" height="70" rx="4" fill="#D38C5F" />
+                  <circle cx="212" cy="165" r="3" fill="#FFE5A3" />
+
+                  {/* Store window */}
+                  <rect x="255" y="130" width="45" height="40" rx="4" fill="#FFFFFF" stroke="#E7CC9F" strokeWidth="2" />
+                  <line x1="255" y1="150" x2="300" y2="150" stroke="#E7CC9F" strokeWidth="1.5" />
+                  <line x1="277.5" y1="130" x2="277.5" y2="170" stroke="#E7CC9F" strokeWidth="1.5" />
+
+                  {/* Awning (Toldinho listrado) */}
+                  <path d="M170 80h160v15H170z" fill="#C13D33" />
+                  <path d="M170 95c0 6 5 10 10 10s10-4 10-10M190 95c0 6 5 10 10 10s10-4 10-10M210 95c0 6 5 10 10 10s10-4 10-10M230 95c0 6 5 10 10 10s10-4 10-10M250 95c0 6 5 10 10 10s10-4 10-10M270 95c0 6 5 10 10 10s10-4 10-10M290 95c0 6 5 10 10 10s10-4 10-10M310 95c0 6 5 10 10 10s10-4 10-10" fill="#E7CC9F" />
+                  <path d="M170 95c0 6 5 10 10 10s10-4 10-10" fill="#C13D33" />
+                  <path d="M190 95c0 6 5 10 10 10s10-4 10-10" fill="#FFFFFF" />
+                  <path d="M210 95c0 6 5 10 10 10s10-4 10-10" fill="#C13D33" />
+                  <path d="M230 95c0 6 5 10 10 10s10-4 10-10" fill="#FFFFFF" />
+                  <path d="M250 95c0 6 5 10 10 10s10-4 10-10" fill="#C13D33" />
+                  <path d="M270 95c0 6 5 10 10 10s10-4 10-10" fill="#FFFFFF" />
+                  <path d="M290 95c0 6 5 10 10 10s10-4 10-10" fill="#C13D33" />
+                  <path d="M310 95c0 6 5 10 10 10s10-4 10-10" fill="#FFFFFF" />
+
+                  {/* Decorative Plant */}
+                  <rect x="305" y="185" width="12" height="15" fill="#D38C5F" />
+                  <circle cx="311" cy="180" r="10" fill="#5F9F7F" />
+                  <circle cx="305" cy="175" r="8" fill="#4B8C6C" />
+                  <circle cx="317" cy="176" r="8" fill="#4B8C6C" />
+
+                  {/* Characters (Chef & Waitress) */}
+                  {/* Male Chef */}
+                  <circle cx="65" cy="90" r="16" fill="#F8EDDB" stroke="#4A3C24" strokeWidth="2" />
+                  <path d="M57 90s2 4 8 4 8-4 8-4" stroke="#4A3C24" strokeWidth="2" strokeLinecap="round" />
+                  {/* Chef Hat */}
+                  <path d="M52 74c0-8 6-12 13-12s13 4 13 12H52z" fill="#FFFFFF" stroke="#4A3C24" strokeWidth="2" />
+                  <rect x="55" y="72" width="20" height="6" fill="#FFFFFF" stroke="#4A3C24" strokeWidth="2" />
+                  {/* Chef Body */}
+                  <path d="M45 200c0-30 8-40 20-40s20 10 20 40H45z" fill="#3D4A5C" />
+                  <path d="M65 160v40" stroke="#FFFFFF" strokeWidth="2" />
+                  {/* Bow tie */}
+                  <path d="M61 164l8 4v-8l-8 4z" fill="#C13D33" />
+                  <path d="M69 164l-8 4v-8l8 4z" fill="#C13D33" />
+
+                  {/* Female Waitress */}
+                  <circle cx="115" cy="95" r="15" fill="#F8EDDB" stroke="#4A3C24" strokeWidth="2" />
+                  <path d="M109 97s2 3 6 3 6-3 6-3" stroke="#4A3C24" strokeWidth="2" strokeLinecap="round" />
+                  {/* Hair */}
+                  <path d="M100 95c0-10 6-15 15-15s15 5 15 15c0 4-2 6-4 6s-4-6-11-6-11 6-11 6-4-2-4-6z" fill="#E88C7D" />
+                  {/* Body */}
+                  <path d="M98 200c0-25 7-35 17-35s17 10 17 35H98z" fill="#2C3539" />
+                  {/* Apron */}
+                  <path d="M108 175h14v25h-14z" fill="#FFFFFF" />
+
+                  {/* Tray with Glass (Bandeja) */}
+                  <line x1="125" y1="145" x2="165" y2="145" stroke="#7F8C8D" strokeWidth="3" strokeLinecap="round" />
+                  <rect x="135" y="130" width="8" height="15" fill="#FFFFFF" stroke="#3498DB" strokeWidth="1.5" />
+                  <rect x="150" y="133" width="6" height="12" fill="#E88C7D" opacity="0.8" />
                 </svg>
-              </Link>
+              </div>
+
             </div>
-
-            {/* Right Graphic/Illustration */}
-            <div className="md:col-span-5 flex justify-center md:justify-end">
-              <svg
-                width="340"
-                height="220"
-                viewBox="0 0 340 220"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-full max-w-[340px]"
-              >
-                {/* Storefront background */}
-                <rect x="180" y="80" width="140" height="120" rx="12" fill="#F8EDDB" stroke="#E7CC9F" strokeWidth="3" />
-
-                {/* Store door */}
-                <rect x="205" y="130" width="35" height="70" rx="4" fill="#D38C5F" />
-                <circle cx="212" cy="165" r="3" fill="#FFE5A3" />
-
-                {/* Store window */}
-                <rect x="255" y="130" width="45" height="40" rx="4" fill="#FFFFFF" stroke="#E7CC9F" strokeWidth="2" />
-                <line x1="255" y1="150" x2="300" y2="150" stroke="#E7CC9F" strokeWidth="1.5" />
-                <line x1="277.5" y1="130" x2="277.5" y2="170" stroke="#E7CC9F" strokeWidth="1.5" />
-
-                {/* Awning (Toldinho listrado) */}
-                <path d="M170 80h160v15H170z" fill="#C13D33" />
-                <path d="M170 95c0 6 5 10 10 10s10-4 10-10M190 95c0 6 5 10 10 10s10-4 10-10M210 95c0 6 5 10 10 10s10-4 10-10M230 95c0 6 5 10 10 10s10-4 10-10M250 95c0 6 5 10 10 10s10-4 10-10M270 95c0 6 5 10 10 10s10-4 10-10M290 95c0 6 5 10 10 10s10-4 10-10M310 95c0 6 5 10 10 10s10-4 10-10" fill="#E7CC9F" />
-                <path d="M170 95c0 6 5 10 10 10s10-4 10-10" fill="#C13D33" />
-                <path d="M190 95c0 6 5 10 10 10s10-4 10-10" fill="#FFFFFF" />
-                <path d="M210 95c0 6 5 10 10 10s10-4 10-10" fill="#C13D33" />
-                <path d="M230 95c0 6 5 10 10 10s10-4 10-10" fill="#FFFFFF" />
-                <path d="M250 95c0 6 5 10 10 10s10-4 10-10" fill="#C13D33" />
-                <path d="M270 95c0 6 5 10 10 10s10-4 10-10" fill="#FFFFFF" />
-                <path d="M290 95c0 6 5 10 10 10s10-4 10-10" fill="#C13D33" />
-                <path d="M310 95c0 6 5 10 10 10s10-4 10-10" fill="#FFFFFF" />
-
-                {/* Decorative Plant */}
-                <rect x="305" y="185" width="12" height="15" fill="#D38C5F" />
-                <circle cx="311" cy="180" r="10" fill="#5F9F7F" />
-                <circle cx="305" cy="175" r="8" fill="#4B8C6C" />
-                <circle cx="317" cy="176" r="8" fill="#4B8C6C" />
-
-                {/* Characters (Chef & Waitress) */}
-                {/* Male Chef */}
-                <circle cx="65" cy="90" r="16" fill="#F8EDDB" stroke="#4A3C24" strokeWidth="2" />
-                <path d="M57 90s2 4 8 4 8-4 8-4" stroke="#4A3C24" strokeWidth="2" strokeLinecap="round" />
-                {/* Chef Hat */}
-                <path d="M52 74c0-8 6-12 13-12s13 4 13 12H52z" fill="#FFFFFF" stroke="#4A3C24" strokeWidth="2" />
-                <rect x="55" y="72" width="20" height="6" fill="#FFFFFF" stroke="#4A3C24" strokeWidth="2" />
-                {/* Chef Body */}
-                <path d="M45 200c0-30 8-40 20-40s20 10 20 40H45z" fill="#3D4A5C" />
-                <path d="M65 160v40" stroke="#FFFFFF" strokeWidth="2" />
-                {/* Bow tie */}
-                <path d="M61 164l8 4v-8l-8 4z" fill="#C13D33" />
-                <path d="M69 164l-8 4v-8l8 4z" fill="#C13D33" />
-
-                {/* Female Waitress */}
-                <circle cx="115" cy="95" r="15" fill="#F8EDDB" stroke="#4A3C24" strokeWidth="2" />
-                <path d="M109 97s2 3 6 3 6-3 6-3" stroke="#4A3C24" strokeWidth="2" strokeLinecap="round" />
-                {/* Hair */}
-                <path d="M100 95c0-10 6-15 15-15s15 5 15 15c0 4-2 6-4 6s-4-6-11-6-11 6-11 6-4-2-4-6z" fill="#E88C7D" />
-                {/* Body */}
-                <path d="M98 200c0-25 7-35 17-35s17 10 17 35H98z" fill="#2C3539" />
-                {/* Apron */}
-                <path d="M108 175h14v25h-14z" fill="#FFFFFF" />
-
-                {/* Tray with Glass (Bandeja) */}
-                <line x1="125" y1="145" x2="165" y2="145" stroke="#7F8C8D" strokeWidth="3" strokeLinecap="round" />
-                <rect x="135" y="130" width="8" height="15" fill="#FFFFFF" stroke="#3498DB" strokeWidth="1.5" />
-                <rect x="150" y="133" width="6" height="12" fill="#E88C7D" opacity="0.8" />
-              </svg>
-            </div>
-
-          </div>
-        </section>
+          </section>
+        )}
 
       </main>
 

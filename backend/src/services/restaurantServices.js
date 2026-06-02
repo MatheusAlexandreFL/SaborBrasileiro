@@ -32,11 +32,22 @@ function validarCamposObrigatorios(payload) {
 }
 
 async function listar() {
-  return database('restaurantes').select('*').orderBy('nome');
+  return database('restaurantes')
+    .leftJoin('avaliacoes', 'restaurantes.id', 'avaliacoes.id_restaurante')
+    .select('restaurantes.*')
+    .select(database.raw('COALESCE(AVG(avaliacoes.nota), 0) as nota'))
+    .groupBy('restaurantes.id')
+    .orderBy('restaurantes.nome');
 }
 
 async function buscarPorId(id) {
-  const restaurante = await database('restaurantes').where({ id }).first();
+  const restaurante = await database('restaurantes')
+    .leftJoin('avaliacoes', 'restaurantes.id', 'avaliacoes.id_restaurante')
+    .select('restaurantes.*')
+    .select(database.raw('COALESCE(AVG(avaliacoes.nota), 0) as nota'))
+    .where('restaurantes.id', id)
+    .groupBy('restaurantes.id')
+    .first();
 
   if (!restaurante) {
     throw new Error('Restaurante não encontrado');

@@ -14,6 +14,18 @@ const Perfil = () => {
   const [cnpj, setCnpj] = useState("");
   const [tipoUsuario, setTipoUsuario] = useState("cliente");
 
+  const [restauranteNome, setRestauranteNome] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [imagemUrl, setImagemUrl] = useState("");
+
+  const [restaurantes, setRestaurantes] = useState([]);
+  const [restauranteSelecionado, setRestauranteSelecionado] = useState(null);
+  const [isNovoRestaurante, setIsNovoRestaurante] = useState(false);
 
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
@@ -44,6 +56,15 @@ const Perfil = () => {
       setFotoPerfil(data.foto_perfil || "");
       setCnpj(data.cnpj || "");
       setTipoUsuario(data.tipoUsuario || "cliente");
+      
+      if (data.restaurantes && data.restaurantes.length > 0) {
+        setRestaurantes(data.restaurantes);
+        selecionarRestaurante(data.restaurantes[0]);
+      } else if (data.tipoUsuario === "restaurante") {
+        setRestaurantes([]);
+        handleNovoRestaurante();
+      }
+
       localStorage.setItem("foto_perfil", data.foto_perfil || "");
     } catch {
       localStorage.removeItem("token");
@@ -63,24 +84,69 @@ const Perfil = () => {
       .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
   };
 
+  const selecionarRestaurante = (rest) => {
+    setRestauranteSelecionado(rest);
+    setIsNovoRestaurante(false);
+    setRestauranteNome(rest.nome || "");
+    setDescricao(rest.descricao || "");
+    setCategoria(rest.categoria || "");
+    setEndereco(rest.endereco || "");
+    setCidade(rest.cidade || "");
+    setEstado(rest.estado || "");
+    setTelefone(rest.telefone || "");
+    setImagemUrl(rest.imagem_url || "");
+  };
+
+  const handleNovoRestaurante = () => {
+    setRestauranteSelecionado(null);
+    setIsNovoRestaurante(true);
+    setRestauranteNome("");
+    setDescricao("");
+    setCategoria("");
+    setEndereco("");
+    setCidade("");
+    setEstado("");
+    setTelefone("");
+    setImagemUrl("");
+  };
+
   const handleSalvarPerfil = async () => {
     setSalvando(true);
     setMensagem(null);
     try {
-      const dados = {
+      const dadosUsuario = {
         nome,
         foto_perfil: fotoPerfil || null,
+        ...(tipoUsuario === "restaurante" && { cnpj: cnpj.replace(/\D/g, "") || null })
       };
 
+      const result = await userService.updatePerfil(dadosUsuario);
+      
       if (tipoUsuario === "restaurante") {
-        dados.cnpj = cnpj.replace(/\D/g, "") || null;
+        const dadosRestaurante = {
+          nome: restauranteNome || "Não informado",
+          descricao,
+          categoria: categoria || "Outros",
+          endereco: endereco || "Não informado",
+          cidade: cidade || "Não informado",
+          estado: estado || "NI",
+          telefone,
+          imagem_url: imagemUrl
+        };
+        
+        const { restaurantService } = await import("../services/api");
+        if (isNovoRestaurante) {
+          await restaurantService.criar(dadosRestaurante);
+        } else if (restauranteSelecionado) {
+          await restaurantService.atualizar(restauranteSelecionado.id, dadosRestaurante);
+        }
+        await fetchPerfil();
+      } else {
+        setPerfil(result);
       }
 
-      const result = await userService.updatePerfil(dados);
-
-      setPerfil(result);
       localStorage.setItem("foto_perfil", result.foto_perfil || "");
-      setMensagem({ tipo: "sucesso", texto: "Perfil atualizado com sucesso!" });
+      setMensagem({ tipo: "sucesso", texto: "Dados salvos com sucesso!" });
     } catch (error) {
       setMensagem({ tipo: "erro", texto: error.response?.data?.error || error.message || "Erro ao salvar perfil" });
     } finally {
@@ -121,6 +187,11 @@ const Perfil = () => {
       setNome(perfil.nome || "");
       setFotoPerfil(perfil.foto_perfil || "");
       setCnpj(perfil.cnpj || "");
+      if (perfil.restaurantes && perfil.restaurantes.length > 0) {
+        selecionarRestaurante(perfil.restaurantes[0]);
+      } else if (tipoUsuario === "restaurante") {
+        handleNovoRestaurante();
+      }
     }
     setSenhaAtual("");
     setNovaSenha("");
@@ -259,6 +330,95 @@ const Perfil = () => {
                   </div>
                 )}
               </div>
+
+              {tipoUsuario === "restaurante" && (
+                <>
+                  <div className="flex items-center gap-2 mb-4 mt-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#C13D33]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <h2 className="font-serif text-[20px] font-extrabold text-black">Meus Restaurantes</h2>
+                  </div>
+                  
+                  <div className="flex overflow-x-auto gap-2 pb-4 mb-4 no-scrollbar">
+                    {restaurantes.map((rest, idx) => (
+                      <button
+                        key={rest.id}
+                        type="button"
+                        onClick={() => selecionarRestaurante(rest)}
+                        className={`whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-bold transition-all cursor-pointer ${
+                          !isNovoRestaurante && restauranteSelecionado?.id === rest.id
+                            ? "bg-[#C13D33] text-white shadow-sm border border-transparent"
+                            : "bg-white text-black/60 border border-black/10 hover:bg-black/5"
+                        }`}
+                      >
+                        {rest.nome}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handleNovoRestaurante}
+                      className={`whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                        isNovoRestaurante
+                          ? "bg-green-600 text-white shadow-sm border border-transparent"
+                          : "bg-white text-green-700 border border-green-600/30 hover:bg-green-50"
+                      }`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                      Adicionar
+                    </button>
+                  </div>
+                  
+                  <div className="flex flex-col gap-5 p-5 bg-[#F5E6CA]/10 rounded-[12px] border border-black/5">
+                    {isNovoRestaurante && (
+                      <div className="text-[14px] font-semibold text-green-700 mb-2 border-b border-green-100 pb-2">
+                        Preencha os dados do novo restaurante. Ele será cadastrado ao clicar em "Salvar Alterações".
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[14px] text-black/60 font-semibold">Nome do Restaurante</label>
+                      <input type="text" value={restauranteNome} onChange={(e) => setRestauranteNome(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[14px] text-black/60 font-semibold">Descrição</label>
+                      <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={3} className="border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 py-2 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all resize-y"></textarea>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[14px] text-black/60 font-semibold">Categoria</label>
+                        <input type="text" value={categoria} onChange={(e) => setCategoria(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[14px] text-black/60 font-semibold">Telefone</label>
+                        <input type="text" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[14px] text-black/60 font-semibold">Endereço</label>
+                      <input type="text" value={endereco} onChange={(e) => setEndereco(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[14px] text-black/60 font-semibold">Cidade</label>
+                        <input type="text" value={cidade} onChange={(e) => setCidade(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[14px] text-black/60 font-semibold">Estado (Sigla)</label>
+                        <input type="text" value={estado} onChange={(e) => setEstado(e.target.value)} maxLength={2} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all uppercase" />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[14px] text-black/60 font-semibold">URL da Imagem de Capa do Restaurante</label>
+                      <input type="url" value={imagemUrl} onChange={(e) => setImagemUrl(e.target.value)} placeholder="https://exemplo.com/foto-restaurante.jpg" className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                    </div>
+                  </div>
+                </>
+              )}
 
 
               {mensagem && (

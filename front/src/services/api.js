@@ -24,6 +24,10 @@ export const pratoService = {
   buscarPrato: async (id) => {
     const response = await api.get(`/pratos/${id}`);
     return response.data;
+  },
+  cadastrarPrato: async (dados) => {
+    const response = await api.post("/pratos", dados);
+    return response.data;
   }
 };
 
@@ -60,6 +64,14 @@ export const restaurantService = {
   },
   buscarPorId: async (id) => {
     const response = await api.get(`/restaurantes/${id}`);
+    return response.data;
+  },
+  criar: async (dados) => {
+    const response = await api.post("/restaurantes", dados);
+    return response.data;
+  },
+  atualizar: async (id, dados) => {
+    const response = await api.put(`/restaurantes/${id}`, dados);
     return response.data;
   }
 };

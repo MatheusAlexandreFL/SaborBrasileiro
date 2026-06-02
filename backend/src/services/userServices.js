@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import database from '../database/exports.js';
 
 async function cadastrarUsuario(dados) {
-    const { nome, email, senha, tipoUsuario, cnpj, foto_perfil } = dados;
+    const { nome, email, senha, tipoUsuario, cnpj, foto_perfil, nome_restaurante } = dados;
 
     const usuario = await database("usuarios").select("*").where({ email: email }).first();
     if (usuario) {
@@ -12,7 +12,7 @@ async function cadastrarUsuario(dados) {
     }
 
     const hash = await bcrypt.hash(senha, 10);
-    await database("usuarios").insert({
+    const [userId] = await database("usuarios").insert({
         nome,
         email,
         senha: hash,
@@ -20,6 +20,17 @@ async function cadastrarUsuario(dados) {
         cnpj,
         foto_perfil
     });
+
+    if (tipoUsuario === 'restaurante') {
+        await database("restaurantes").insert({
+            usuario_id: userId,
+            nome: nome_restaurante || nome,
+            categoria: 'Outros',
+            endereco: 'Não informado',
+            cidade: 'Não informado',
+            estado: 'NI'
+        });
+    }
 }
 
 async function login(email, senha) {
@@ -52,6 +63,22 @@ async function getPerfil(userId) {
         throw new Error('Usuário não encontrado');
     }
 
+    if (usuario.tipoUsuario?.toLowerCase() === 'restaurante' || usuario.tipoUsuario?.toLowerCase() === 'dono') {
+        const restaurantes = await database("restaurantes")
+            .select('id', 'nome', 'descricao', 'categoria', 'endereco', 'cidade', 'estado', 'telefone', 'imagem_url')
+            .where({ usuario_id: userId });
+        if (restaurantes.length > 0) {
+            usuario.restaurantes = restaurantes;
+            usuario.restaurante_ids = restaurantes.map(r => r.id);
+            // Manter as chaves singulares para não quebrar componentes que ainda não foram atualizados
+            usuario.restaurante_id = restaurantes[0].id;
+            usuario.restaurante = restaurantes[0];
+        } else {
+            usuario.restaurantes = [];
+            usuario.restaurante_ids = [];
+        }
+    }
+
     return usuario;
 }
 
@@ -65,9 +92,6 @@ async function updatePerfil(userId, dados) {
         }
     }
 
-    if (Object.keys(dadosParaAtualizar).length === 0) {
-        throw new Error('Nenhum dado para atualizar');
-    }
     if (dadosParaAtualizar.cnpj) {
         const cnpjExistente = await database("usuarios")
             .where({ cnpj: dadosParaAtualizar.cnpj })
@@ -78,7 +102,12 @@ async function updatePerfil(userId, dados) {
         }
     }
 
-    await database("usuarios").where({ id: userId }).update(dadosParaAtualizar);
+    if (Object.keys(dadosParaAtualizar).length > 0) {
+        await database("usuarios").where({ id: userId }).update(dadosParaAtualizar);
+    }
+
+    // A atualização de restaurantes agora é feita diretamente nos endpoints de restaurantes
+    // devido ao suporte de múltiplos restaurantes por dono.
 
     return await getPerfil(userId);
 }

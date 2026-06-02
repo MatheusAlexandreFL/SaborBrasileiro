@@ -23,11 +23,13 @@ async function criar_avaliacao(req, res) {
 
 async function listar_avaliacoes(req, res) {
     try {
-        const { id_restaurante, id_prato } = req.query;
-        if (!id_restaurante && !id_prato) {
-            return res.status(400).json({ error: 'O ID do restaurante ou do prato é obrigatório na busca.' });
-        }
-        const avaliacoes = await avaliacaoService.listar_avaliacoes({ id_restaurante, id_prato });
+        const { id_restaurante, id_prato, apenas_restaurante } = req.query;
+        
+        const avaliacoes = await avaliacaoService.listar_avaliacoes({ 
+            id_restaurante, 
+            id_prato,
+            apenas_restaurante: apenas_restaurante === 'true'
+        });
         res.json(avaliacoes);
     } catch (error) {
         res.status(500).json({ error: error.message });

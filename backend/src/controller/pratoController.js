@@ -12,10 +12,10 @@ function obterStatusErro(error) {
 
 async function cadastrar_prato(req, res){
     try {
-        const { nome, descricao, preco, foto } = req.body;
+        const { nome, descricao, preco, foto, restaurante_id } = req.body;
         const usuario_id = req.id;
-        await pratoService.cadastrar_prato(nome, descricao, preco, foto, usuario_id);
-        res.status(201).json({ message: 'Prato cadastrado com sucesso!' });
+        const pratoId = await pratoService.cadastrar_prato(nome, descricao, preco, foto, usuario_id, restaurante_id);
+        res.status(201).json({ message: 'Prato cadastrado com sucesso!', pratoId });
     } catch (error) {
         res.status(obterStatusErro(error)).json({ error: error.message });
     }

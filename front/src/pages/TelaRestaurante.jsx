@@ -3,8 +3,9 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { RESTAURANTS } from "../mockData";
 import DishCard from "../components/DishCard";
 import { useToast } from "../context/ToastContext";
-import { restaurantService, avaliacaoService } from "../services/api";
+import { restaurantService, avaliacaoService, userService } from "../services/api";
 import usePratos from "../hooks/usePratos";
+import HeaderSearch from "../components/HeaderSearch";
 
 const MapPinIcon = () => (
   <svg
@@ -115,9 +116,18 @@ const TelaRestaurante = () => {
   const menuRef = useRef(null);
   
   const [restauranteInfo, setRestauranteInfo] = useState(location.state || null);
+
+  useEffect(() => {
+    if (location.state) {
+      setRestauranteInfo(location.state);
+    }
+  }, [location.state]);
+
+  const [meusRestaurantesIds, setMeusRestaurantesIds] = useState([]);
+
   // Se não vier do state (refresh direto na página com id), o useEffect busca.
   const restaurantePrincipal = restauranteInfo || {
-    id: id || 1,
+    id: id || (meusRestaurantesIds.length > 0 ? meusRestaurantesIds[0] : null),
     name: "Carregando...",
     rating: 0,
     category: "...",
@@ -137,6 +147,8 @@ const TelaRestaurante = () => {
     ]
   };
 
+  const displayAddress = restaurantePrincipal.address || details.address;
+  const displayDescription = restaurantePrincipal.description || details.description;
 
   const [listaComentarios, setListaComentarios] = useState([]);
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState(false);
@@ -144,38 +156,69 @@ const TelaRestaurante = () => {
   const [hoverNota, setHoverNota] = useState(0);
   const [comentario, setComentario] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  
-  const { dishes } = usePratos(id || restaurantePrincipal.id);
+  const [meuUserId, setMeuUserId] = useState(null);
+  const [meuNome, setMeuNome] = useState("");
+  const [isFetchingUser, setIsFetchingUser] = useState(true);
+
+  const { dishes } = usePratos(restaurantePrincipal.id);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const data = await userService.getPerfil();
+          setTipoUsuario(data.tipoUsuario || "cliente");
+          setMeuUserId(data.id);
+          setMeuNome(data.nome);
+          if (data.restaurante_ids) {
+             setMeusRestaurantesIds(data.restaurante_ids);
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao buscar perfil:", e);
+      } finally {
+        setIsFetchingUser(false);
+      }
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchDados = async () => {
-      const restId = id || restaurantePrincipal.id;
+      if (!id && isFetchingUser) return; // Wait for user check if no ID
+      
+      const restId = id || (meusRestaurantesIds.length > 0 ? meusRestaurantesIds[0] : null);
       if (!restId) return;
       
       try {
-        // Busca info do restaurante se não veio no state
-        if (!restauranteInfo && id) {
-           const restData = await restaurantService.buscarPorId(id);
+        // Busca info do restaurante se não veio no state ou mudou o ID
+        if (!restauranteInfo || restauranteInfo.id != restId || !restauranteInfo.address) {
+           const restData = await restaurantService.buscarPorId(restId);
            setRestauranteInfo({
              id: restData.id,
              name: restData.nome,
              rating: parseFloat(restData.nota) || 0,
              category: restData.categoria,
              location: `${restData.cidade}, ${restData.estado}`,
-             image: restData.imagem_url || details.gallery[0]
+             image: restData.imagem_url || details.gallery[0],
+             address: restData.endereco && restData.endereco !== 'Não informado' ? `${restData.endereco} - ${restData.cidade}, ${restData.estado}` : "Endereço não informado",
+             description: restData.descricao || details.description
            });
         }
         
         // Busca avaliações reais da API
-        const avaliacoes = await avaliacaoService.listar({ id_restaurante: restId });
-        setListaComentarios(avaliacoes.map(av => ({
+        const avaliacoes = await avaliacaoService.listar({ id_restaurante: restId, apenas_restaurante: true });
+        const comentariosFormatados = avaliacoes.map(av => ({
            id: av.id,
-           nome: av.nome_usuario || "Usuário",
-           iniciais: av.nome_usuario ? av.nome_usuario.substring(0,2).toUpperCase() : "US",
+           id_usuario: av.id_usuario,
+           nome: av.usuario_nome || "Usuário",
+           iniciais: av.usuario_nome ? av.usuario_nome.substring(0,2).toUpperCase() : "US",
+           foto: av.usuario_foto,
            nota: parseFloat(av.nota),
            texto: av.comentario
-        })));
+        }));
+        setListaComentarios(comentariosFormatados);
       } catch (e) {
         console.error("Erro ao carregar dados do restaurante", e);
       }
@@ -183,42 +226,8 @@ const TelaRestaurante = () => {
     
     fetchDados();
     window.scrollTo(0, 0);
-  }, [id, restaurantePrincipal.id]);
+  }, [id, meusRestaurantesIds, isFetchingUser, restauranteInfo]);
 
-  // Filtro de busca inteligente (por nome, categoria, prato, endereço e descrição)
-  const filteredRestaurantsFromSearch = RESTAURANTS.filter((r) => {
-    const term = searchQuery.toLowerCase().trim();
-    if (!term) return [];
-
-    const nameMatch = r.name.toLowerCase().includes(term);
-    const categoryMatch = r.category.toLowerCase().includes(term);
-    const locationMatch = r.location.toLowerCase().includes(term);
-
-    const detailsObj = RESTAURANT_DETAILS[r.name] || {};
-    const descriptionMatch = detailsObj.description?.toLowerCase().includes(term) || false;
-    const addressMatch = detailsObj.address?.toLowerCase().includes(term) || false;
-
-    // Pratos do restaurante
-    const hasMatchingDish = dishes.some(
-      (d) => d.restaurant && d.restaurant.toLowerCase() === r.name.toLowerCase() && d.name.toLowerCase().includes(term)
-    );
-
-    return nameMatch || categoryMatch || locationMatch || descriptionMatch || addressMatch || hasMatchingDish;
-  });
-
-  const handleSelectRestaurantFromSearch = (res) => {
-    setSearchQuery("");
-    navigate("/restaurante", {
-      state: {
-        id: res.id,
-        name: res.name,
-        rating: res.rating,
-        category: res.category,
-        location: res.location,
-        image: res.image
-      }
-    });
-  };
 
 
   const handlePrevImage = (e) => {
@@ -242,12 +251,12 @@ const TelaRestaurante = () => {
   // navegar usando as setas do teclado
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (selectedImageIndex === null) return;
-      if (e.key === "Escape") handleCloseLightbox();
-      if (e.key === "ArrowLeft") handlePrevImage();
-      if (e.key === "ArrowRight") handleNextImage();
+      if (selectedImageIndex !== null) {
+        if (e.key === "ArrowLeft") handlePrevImage(e);
+        if (e.key === "ArrowRight") handleNextImage(e);
+        if (e.key === "Escape") handleCloseLightbox();
+      }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedImageIndex]);
@@ -262,6 +271,18 @@ const TelaRestaurante = () => {
 
   const comentariosExibidos = mostrarTodosComentarios ? listaComentarios : listaComentarios.slice(0, 2);
 
+  if (!id && meusRestaurantesIds.length === 0 && !isFetchingUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center">
+          <h2 className="text-2xl font-bold text-red-500 mb-4">Aguardando dados...</h2>
+          <p className="text-gray-700">Por favor, reinicie o backend e o front para garantir que as atualizações funcionem.</p>
+          <p className="text-gray-500 text-sm mt-4">Caso já tenha feito isso, deslogue e logue de novo.</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleScrollToMenu = () => {
     menuRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -275,17 +296,19 @@ const TelaRestaurante = () => {
 
     try {
       const novaAvaliacao = await avaliacaoService.criar({
-         id_restaurante: restaurantePrincipal.id,
-         nota: nota,
+         id_restaurante: parseInt(restaurantePrincipal.id, 10),
+         nota: parseFloat(nota),
          comentario: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
       });
       
       const avLocal = {
-         id: novaAvaliacao.id,
-         nome: "Você",
-         iniciais: "VC",
+         id: novaAvaliacao.id || Date.now(),
+         id_usuario: meuUserId,
+         nome: meuNome || "Você",
+         iniciais: meuNome ? meuNome.substring(0, 2).toUpperCase() : "VC",
+         foto: null,
          nota: parseFloat(novaAvaliacao.nota) || nota,
-         texto: novaAvaliacao.comentario
+         texto: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
       };
 
       setListaComentarios([avLocal, ...listaComentarios]);
@@ -303,100 +326,7 @@ const TelaRestaurante = () => {
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black relative">
 
-      {/* Header com Botão Voltar e Busca */}
-      <header className="max-w-[1000px] w-full mx-auto px-4 sm:px-6 pt-6 flex justify-between items-center z-35 relative gap-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="bg-white text-black px-4 py-2 rounded-full shadow-md border border-black/10 hover:bg-black/5 cursor-pointer font-bold text-[14px] flex items-center gap-1.5 transition-all outline-none shrink-0"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-          </svg>
-          <span>Voltar</span>
-        </button>
-
-        {/* Barra de Busca de Restaurantes */}
-        <div className="relative w-full max-w-[320px]">
-          <div className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-4 py-2 shadow-xs hover:shadow-md transition-all duration-300">
-            <svg
-              aria-hidden="true"
-              className="h-4.5 w-4.5 text-black/40 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar restaurante ou prato..."
-              className="w-full bg-transparent border-none outline-none text-[14px] font-medium text-black placeholder:text-black/35 focus:ring-0 focus:outline-none"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="text-black/40 hover:text-black/75 cursor-pointer border-none bg-transparent outline-none p-0.5 shrink-0"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {/* Dropdown de Sugestões */}
-          {searchQuery.trim().length > 0 && (
-            <div className="absolute top-full right-0 mt-2 w-[300px] sm:w-[340px] bg-white rounded-2xl shadow-xl border border-black/5 z-50 overflow-hidden py-2 animate-in fade-in slide-in-from-top-1 duration-200">
-              <div className="px-4 py-1.5 border-b border-black/5 mb-1.5">
-                <span className="text-[11px] font-bold text-black/40 uppercase tracking-wider">
-                  Sugestões ({filteredRestaurantsFromSearch.length})
-                </span>
-              </div>
-              {filteredRestaurantsFromSearch.length > 0 ? (
-                <div className="max-h-[260px] overflow-y-auto no-scrollbar">
-                  {filteredRestaurantsFromSearch.map((res) => (
-                    <div
-                      key={res.id}
-                      onClick={() => handleSelectRestaurantFromSearch(res)}
-                      className="px-4 py-2 hover:bg-[#F8EDDB]/35 flex items-center gap-3 cursor-pointer transition-colors"
-                    >
-                      <img
-                        src={res.image}
-                        alt={res.name}
-                        className="w-10 h-10 rounded-lg object-cover border border-black/5 shrink-0"
-                      />
-                      <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="font-bold text-[13px] text-black truncate">{res.name}</span>
-                        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-black/50">
-                          <span className="text-[#C13D33]">{res.category.split(" - ")[0]}</span>
-                          <span>&bull;</span>
-                          <span className="flex items-center gap-0.5 text-[#4A3C24]">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 text-amber-500">
-                              <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
-                            </svg>
-                            {res.rating.toFixed(1)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="px-4 py-4 text-center text-[12px] font-semibold text-black/45">
-                  Nenhum restaurante encontrado.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
+      <HeaderSearch />
 
       <main className="flex-1 max-w-[1000px] w-full mx-auto px-4 sm:px-6 py-6 flex flex-col gap-10">
 
@@ -441,7 +371,7 @@ const TelaRestaurante = () => {
               <div className="flex items-start gap-2.5 text-[14px] text-black/85 leading-relaxed pt-1">
                 <MapPinIcon />
                 <address className="not-italic font-medium">
-                  {details.address}
+                  {displayAddress}
                 </address>
               </div>
             </div>
@@ -449,7 +379,7 @@ const TelaRestaurante = () => {
             <div className="w-full h-[180px] rounded-[16px] overflow-hidden border border-black/10 shadow-xs relative bg-[#e9eef3] group">
               <iframe
                 title={`Mapa do Restaurante ${restaurantePrincipal.name}`}
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(details.address)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(displayAddress)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
                 width="100%"
                 height="100%"
                 className="border-none w-full h-full relative z-10"
@@ -467,7 +397,7 @@ const TelaRestaurante = () => {
             Sobre o Restaurante
           </h2>
           <p className="text-[15px] sm:text-[16px] text-black/75 leading-relaxed font-medium">
-            {details.description}
+            {displayDescription}
           </p>
         </section>
 
@@ -542,9 +472,11 @@ const TelaRestaurante = () => {
               {pratosDoRestaurante.map((dish) => (
                 <DishCard
                   key={dish.id}
+                  id={dish.id}
                   image={dish.image}
                   name={dish.name}
                   restaurant={dish.restaurant}
+                  restauranteId={dish.restauranteId}
                   rating={dish.rating}
                   hideRating={true}
                   hideLink={true}
@@ -562,114 +494,111 @@ const TelaRestaurante = () => {
         <section className="bg-white rounded-[24px] shadow-lg p-6 sm:p-10 border border-black/5 flex flex-col gap-8">
 
 
-          <form onSubmit={handleEnviarAvaliacao} className="w-full bg-[#F8EDDB]/20 border border-black/10 rounded-[16px] p-6 flex flex-col gap-4">
-            <div>
-              <h2 className="font-serif text-[18px] sm:text-[20px] font-extrabold text-black">
-                Avalie este restaurante
-              </h2>
-              <p className="text-[12px] sm:text-[13px] font-bold text-black/50 tracking-wide">
-                Sua avaliação ajuda outros clientes a escolherem melhor!
-              </p>
-            </div>
+          {(!meusRestaurantesIds.includes(Number(restaurantePrincipal.id))) && (
+            <form onSubmit={handleEnviarAvaliacao} className="w-full bg-[#F8EDDB]/20 border border-black/10 rounded-[16px] p-6 flex flex-col gap-4">
+              <div>
+                <h2 className="font-serif text-[18px] sm:text-[20px] font-extrabold text-black">
+                  Avalie este restaurante
+                </h2>
+                <p className="text-[12px] sm:text-[13px] font-bold text-black/50 tracking-wide">
+                  Sua avaliação ajuda outros clientes a escolherem melhor!
+                </p>
+              </div>
 
+              <div className="flex flex-col gap-2">
+                <span className="text-[12px] font-bold text-[#C13D33] uppercase tracking-wider">Sua nota</span>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((index) => {
+                    const isHalf = hoverNota ? (hoverNota === index - 0.5) : (nota === index - 0.5);
+                    const isFull = hoverNota ? (hoverNota >= index) : (nota >= index);
 
-            <div className="flex flex-col gap-2">
-              <span className="text-[12px] font-bold text-[#C13D33] uppercase tracking-wider">Sua nota</span>
-              <div className="flex items-center gap-2">
-                {[1, 2, 3, 4, 5].map((index) => {
-                  const isHalf = hoverNota ? (hoverNota === index - 0.5) : (nota === index - 0.5);
-                  const isFull = hoverNota ? (hoverNota >= index) : (nota >= index);
-
-                  return (
-                    <div
-                      key={index}
-                      className="relative w-8 h-8 transition-transform hover:scale-110 shrink-0"
-                    >
-                      {/* Estrela de fundo: cinza claro */}
-                      <svg
-                        aria-hidden="true"
-                        className="absolute top-0 left-0 w-8 h-8 text-neutral-200"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
+                    return (
+                      <div
+                        key={index}
+                        className="relative w-8 h-8 transition-transform hover:scale-110 shrink-0"
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-
-                      {/* Estrela de frente: amarela (cheia ou meia) */}
-                      {(isFull || isHalf) && (
-                        <div
-                          className={`absolute top-0 left-0 h-full overflow-hidden ${isHalf ? "w-1/2" : "w-full"
-                            }`}
+                        <svg
+                          aria-hidden="true"
+                          className="absolute top-0 left-0 w-8 h-8 text-neutral-200"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
                         >
-                          <svg
-                            aria-hidden="true"
-                            className="w-8 h-8 text-amber-500"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
+                          <path
+                            fillRule="evenodd"
+                            d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+
+                        {(isFull || isHalf) && (
+                          <div
+                            className={`absolute top-0 left-0 h-full overflow-hidden ${isHalf ? "w-1/2" : "w-full"
+                              }`}
                           >
-                            <path
-                              fillRule="evenodd"
-                              d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-                      )}
+                            <svg
+                              aria-hidden="true"
+                              className="w-8 h-8 text-amber-500"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                        )}
 
-                      {/* Botões invisíveis para as metades da estrela */}
-                      <button
-                        type="button"
-                        onClick={() => setNota(nota === index - 0.5 ? 0 : index - 0.5)}
-                        onMouseEnter={() => setHoverNota(index - 0.5)}
-                        onMouseLeave={() => setHoverNota(0)}
-                        className="absolute top-0 left-0 w-1/2 h-full z-10 bg-transparent border-none outline-none cursor-pointer"
-                        aria-label={`Avaliar ${index - 0.5} estrelas`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setNota(nota === index ? 0 : index)}
-                        onMouseEnter={() => setHoverNota(index)}
-                        onMouseLeave={() => setHoverNota(0)}
-                        className="absolute top-0 right-0 w-1/2 h-full z-10 bg-transparent border-none outline-none cursor-pointer"
-                        aria-label={`Avaliar ${index} estrelas`}
-                      />
-                    </div>
-                  );
-                })}
-                {nota > 0 && (
-                  <span className="ml-2 font-bold text-[14px] bg-[#E7CC9F]/35 px-2.5 py-0.5 rounded-full text-[#4A3C24]">
-                    {nota.toFixed(1)} {nota === 1 ? "estrela" : "estrelas"}
-                  </span>
-                )}
+                        <button
+                          type="button"
+                          onClick={() => setNota(nota === index - 0.5 ? 0 : index - 0.5)}
+                          onMouseEnter={() => setHoverNota(index - 0.5)}
+                          onMouseLeave={() => setHoverNota(0)}
+                          className="absolute top-0 left-0 w-1/2 h-full z-10 bg-transparent border-none outline-none cursor-pointer"
+                          aria-label={`Avaliar ${index - 0.5} estrelas`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setNota(nota === index ? 0 : index)}
+                          onMouseEnter={() => setHoverNota(index)}
+                          onMouseLeave={() => setHoverNota(0)}
+                          className="absolute top-0 right-0 w-1/2 h-full z-10 bg-transparent border-none outline-none cursor-pointer"
+                          aria-label={`Avaliar ${index} estrelas`}
+                        />
+                      </div>
+                    );
+                  })}
+                  {nota > 0 && (
+                    <span className="ml-2 font-bold text-[14px] bg-[#E7CC9F]/35 px-2.5 py-0.5 rounded-full text-[#4A3C24]">
+                      {nota.toFixed(1)} {nota === 1 ? "estrela" : "estrelas"}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Comentário e Botão */}
-            <div className="flex flex-col gap-2">
-              <label htmlFor="comentario-restaurante" className="text-[12px] font-bold text-black/40 uppercase tracking-wider">
-                Seu comentário (opcional)
-              </label>
-              <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
-                <textarea
-                  id="comentario-restaurante"
-                  value={comentario}
-                  onChange={(e) => setComentario(e.target.value)}
-                  placeholder="Conte sua experiência, o que mais gostou, o atendimento..."
-                  className="flex-1 min-h-[70px] max-h-[140px] resize-y rounded-[8px] border border-black/15 bg-white p-3 text-[14px] font-medium leading-relaxed text-black outline-none transition-all placeholder:text-black/30 focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33]"
-                />
-                <button
-                  type="submit"
-                  className="h-[44px] sm:h-[40px] sm:w-[100px] rounded-[8px] bg-[#C13D33] text-[14px] font-bold text-white transition-colors hover:bg-[#a53229] outline-none shadow-sm active:scale-98 cursor-pointer shrink-0"
-                >
-                  Enviar
-                </button>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="comentario-restaurante" className="text-[12px] font-bold text-black/40 uppercase tracking-wider">
+                  Seu comentário (opcional)
+                </label>
+                <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
+                  <textarea
+                    id="comentario-restaurante"
+                    value={comentario}
+                    onChange={(e) => setComentario(e.target.value)}
+                    placeholder="Conte sua experiência, o que mais gostou, o atendimento..."
+                    className="flex-1 min-h-[70px] max-h-[140px] resize-y rounded-[8px] border border-black/15 bg-white p-3 text-[14px] font-medium leading-relaxed text-black outline-none transition-all placeholder:text-black/30 focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33]"
+                  />
+                  <button
+                    type="submit"
+                    className="h-[44px] sm:h-[40px] sm:w-[100px] rounded-[8px] bg-[#C13D33] text-[14px] font-bold text-white transition-colors hover:bg-[#a53229] outline-none shadow-sm active:scale-98 cursor-pointer shrink-0"
+                  >
+                    Enviar
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          )}
 
           {/* Listagem de Comentários */}
           <div className="flex flex-col gap-6">
@@ -683,15 +612,20 @@ const TelaRestaurante = () => {
                   key={coment.id}
                   className="flex gap-4 items-start bg-neutral-50/50 p-4 rounded-[12px] border border-black/5 transition-all hover:bg-neutral-50"
                 >
-                  {/* Avatar */}
-                  <div className="w-11 h-11 rounded-full bg-[#E7CC9F] text-[#4A3C24] font-extrabold flex items-center justify-center shrink-0 border border-[#E7CC9F] text-[15px]">
-                    {coment.iniciais}
-                  </div>
+                  {coment.foto ? (
+                    <img src={coment.foto} alt={coment.nome} className="w-11 h-11 rounded-full object-cover shrink-0 border border-black/10" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-full bg-[#E7CC9F] text-[#4A3C24] font-extrabold flex items-center justify-center shrink-0 border border-[#E7CC9F] text-[15px]">
+                      {coment.iniciais}
+                    </div>
+                  )}
 
                   {/* Conteúdo */}
                   <div className="flex flex-col gap-1 w-full">
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-[15px] text-black">{coment.nome}</span>
+                      <span className="font-bold text-[15px] text-black">
+                        {coment.id_usuario === meuUserId ? "Você" : coment.nome}
+                      </span>
                       <div className="flex items-center gap-1.5 text-[13px] font-extrabold bg-[#E7CC9F]/20 text-[#4A3C24] px-2 py-0.5 rounded-full border border-[#E7CC9F]/30">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-amber-500">
                           <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
