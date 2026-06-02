@@ -296,8 +296,8 @@ const TelaRestaurante = () => {
 
     try {
       const novaAvaliacao = await avaliacaoService.criar({
-         id_restaurante: restaurantePrincipal.id,
-         nota: nota,
+         id_restaurante: parseInt(restaurantePrincipal.id, 10),
+         nota: parseFloat(nota),
          comentario: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
       });
       

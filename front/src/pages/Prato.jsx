@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom"; 
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import DishCard from "../components/DishCard";
 import AvaliarButton from "../components/AvaliarButton";
 import AdicionarPratoModal from "../components/AdicionarPratoModal";
@@ -11,7 +11,7 @@ import usePratos from "../hooks/usePratos";
 const Prato = () => {
   const { id } = useParams();
   const location = useLocation();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const toast = useToast();
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState(false);
   const [listaComentarios, setListaComentarios] = useState([]);
@@ -140,8 +140,8 @@ const Prato = () => {
   }, [id, pratoInfo, meusRestaurantesIds, dishes]);
 
   // calculo da media geral
-  const mediaGeralDinamica = listaComentarios.length > 0 
-    ? listaComentarios.reduce((soma, comentario) => soma + comentario.nota, 0) / listaComentarios.length 
+  const mediaGeralDinamica = listaComentarios.length > 0
+    ? listaComentarios.reduce((soma, comentario) => soma + comentario.nota, 0) / listaComentarios.length
     : 0;
 
   const pratoPrincipal = (pratoInfo && pratoInfo.id) ? pratoInfo : {
@@ -162,9 +162,9 @@ const Prato = () => {
   const handleSalvarAvaliacao = async (dadosDaAvaliacao) => {
     try {
       const novaAvaliacao = await avaliacaoService.criar({
-        id_prato: pratoPrincipal.id,
-        id_restaurante: pratoPrincipal.restauranteId,
-        nota: dadosDaAvaliacao.nota,
+        id_prato: parseInt(pratoPrincipal.id, 10),
+        id_restaurante: parseInt(pratoPrincipal.restauranteId, 10),
+        nota: parseFloat(dadosDaAvaliacao.nota),
         comentario: dadosDaAvaliacao.comentario
       });
 
@@ -189,20 +189,31 @@ const Prato = () => {
 
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black p-6 md:p-10">
-      
       <HeaderSearch />
 
+      {/* correção: botão de Voltar agora fora da imagem*/}
+      <div className="max-w-[1000px] w-full mx-auto mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-black/5 cursor-pointer border-none outline-none"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+        </button>
+      </div>
+
       <main className="flex-1 max-w-[1000px] w-full mx-auto flex flex-col gap-8 mb-12">
-        
+
         {/* add: posicionamento lado a lado( foto na esquerda e infos na direita) */}
         <div className="bg-white rounded-[24px] shadow-xl p-8 flex flex-col md:flex-row gap-8 lg:gap-12">
-          
+
           {/* add: imagem na esquerda */}
           <div className="w-full md:w-1/2 shrink-0 self-center">
-            <img 
-              src={pratoPrincipal.image} 
-              alt={pratoPrincipal.name} 
-              className="w-full h-auto object-cover rounded-[16px] max-h-[450px]" 
+            <img
+              src={pratoPrincipal.image}
+              alt={pratoPrincipal.name}
+              className="w-full h-auto object-cover rounded-[16px] max-h-[450px]"
             />
           </div>
           {/* direita: informações */}
@@ -244,7 +255,7 @@ const Prato = () => {
 
         {/* add: avaliações e recomendações (elementos originais) */}
         <div className="bg-white rounded-[24px] shadow-xl p-8 flex flex-col gap-10">
-          
+
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center border-b border-black/5 pb-4">
               <div>
@@ -285,7 +296,7 @@ const Prato = () => {
             </div>
 
             {listaComentarios.length > 2 && (
-              <button 
+              <button
                 onClick={() => setMostrarTodosComentarios(!mostrarTodosComentarios)}
                 className="text-[#C13D33] font-bold text-[14px] mt-2 self-start hover:underline cursor-pointer bg-transparent border-none outline-none"
               >
@@ -302,7 +313,7 @@ const Prato = () => {
               ))}
             </div>
           </div>
-          
+
         </div>
       </main>
     </div>
