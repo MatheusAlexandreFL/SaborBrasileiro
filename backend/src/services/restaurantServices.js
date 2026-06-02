@@ -10,6 +10,7 @@ const CAMPOS_PERMITIDOS = [
   'telefone',
   'imagem_url',
   'nota',
+  'galeria',
 ];
 
 function montarPayloadRestaurante(dados) {
@@ -69,7 +70,13 @@ async function criar(dados, usuarioId) {
 }
 
 async function atualizar(id, dados, usuarioId) {
-  await buscarPorId(id);
+  const restaurante = await database('restaurantes')
+    .where({ id, usuario_id: usuarioId })
+    .first();
+
+  if (!restaurante) {
+    throw new Error('Você não tem permissão para atualizar este restaurante');
+  }
 
   const payload = montarPayloadRestaurante(dados);
 
@@ -77,13 +84,9 @@ async function atualizar(id, dados, usuarioId) {
     throw new Error('Nenhum campo válido para atualizar');
   }
 
-  const atualizado = await database('restaurantes')
-    .where({ id, usuario_id: usuarioId })
+  await database('restaurantes')
+    .where({ id })
     .update(payload);
-
-  if (!atualizado) {
-    throw new Error('Você não tem permissão para atualizar este restaurante');
-  }
 
   return buscarPorId(id);
 }

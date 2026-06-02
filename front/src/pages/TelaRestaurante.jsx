@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { RESTAURANTS } from "../mockData";
 import DishCard from "../components/DishCard";
+import AdicionarPratoModal from "../components/AdicionarPratoModal";
 import { useToast } from "../context/ToastContext";
 import { restaurantService, avaliacaoService, userService } from "../services/api";
 import usePratos from "../hooks/usePratos";
@@ -30,57 +31,27 @@ const RESTAURANT_DETAILS = {
   "Origem Cozinha Natural": {
     address: "Rua das flores, 122 - Botafogo, Rio de Janeiro, RJ - CEP 22250-060",
     description: "No Origem Cozinha Natural, acreditamos que comer bem é um ato de carinho com o próprio corpo. Nosso menu é composto inteiramente por ingredientes orgânicos selecionados de produtores locais parceiros. Desenvolvemos pratos contemporâneos ricos em nutrientes, com opções vegetarianas, veganas e sem glúten, sem abrir mão do sabor e da apresentação impecável. O ambiente é um refúgio arborizado no coração de Botafogo, perfeito para desacelerar e saborear a vida.",
-    gallery: [
-      "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80"
-    ]
+    gallery: []
   },
   "Verde & Mar": {
     address: "Avenida Atlântica, 450 - Copacabana, Rio de Janeiro, RJ - CEP 22010-000",
     description: "Com uma vista deslumbrante e o aroma do mar, o Verde & Mar combina a culinária saudável com pescados frescos e frutos do mar preparados na brasa. Nossos pratos valorizam os sabores naturais com temperos leves, ervas frescas e azeites artesanais premium. O ambiente arejado e a decoração praiana proporcionam uma experiência gastronômica relaxante e inesquecível na orla carioca.",
-    gallery: [
-      "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1485962398705-ef6a13c41e8f?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&auto=format&fit=crop&q=80"
-    ]
+    gallery: []
   },
   "Cantina Bella Italia": {
     address: "Rua São Clemente, 312 - Botafogo, Rio de Janeiro, RJ - CEP 22260-004",
     description: "A Cantina Bella Italia traz o melhor da tradição gastronômica italiana diretamente para o Rio de Janeiro. Nossas massas são de fabricação artesanal diária, preparadas com sêmola de grano duro importada e servidas com molhos encorpados e aromáticos que cozinham por horas. Dos antepastos clássicos aos risotos trufados, cada detalhe é pensado para recriar o clima caloroso de um almoço em família na Itália.",
-    gallery: [
-      "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1595295333158-4742f28fbd85?w=800&auto=format&fit=crop&q=80"
-    ]
+    gallery: []
   },
   "Bife & Brasa": {
     address: "Rua Voluntários da Pátria, 89 - Botafogo, Rio de Janeiro, RJ - CEP 22270-000",
     description: "O Bife & Brasa é o destino ideal para os amantes de carne e hambúrgueres artesanais grelhados na brasa perfeita. Nossos blends são moídos diariamente com cortes selecionados de Angus certificado, garantindo suculência máxima. O pão macio brioche, o queijo derretido e os molhos autorais completam a experiência no nosso ambiente rústico e moderno.",
-    gallery: [
-      "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1558030006-450675393462?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1504973960431-1c467e159aa4?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1546964124-0cce460f38ef?w=800&auto=format&fit=crop&q=80"
-    ]
+    gallery: []
   },
   "Doce Suspiro": {
     address: "Rua Visconde de Pirajá, 150 - Ipanema, Rio de Janeiro, RJ - CEP 22410-002",
     description: "A Doce Suspiro é um pedacinho de céu para quem ama sobremesas finas e confeitaria de alta qualidade. Combinando técnicas clássicas francesas com ingredientes tradicionais brasileiros, nosso menu traz de tortas de chocolate belga a panna cottas delicadas com de framboesas frescas. Perfeito para uma tarde especial ou para adoçar qualquer momento do dia.",
-    gallery: [
-      "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1511018556340-d16986a1c194?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&auto=format&fit=crop&q=80"
-    ]
+    gallery: []
   }
 };
 
@@ -114,7 +85,7 @@ const TelaRestaurante = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const menuRef = useRef(null);
-  
+
   const [restauranteInfo, setRestauranteInfo] = useState(location.state || null);
 
   useEffect(() => {
@@ -125,7 +96,7 @@ const TelaRestaurante = () => {
 
   const [meusRestaurantesIds, setMeusRestaurantesIds] = useState([]);
 
-  // Se não vier do state (refresh direto na página com id), o useEffect busca.
+
   const restaurantePrincipal = restauranteInfo || {
     id: id || (meusRestaurantesIds.length > 0 ? meusRestaurantesIds[0] : null),
     name: "Carregando...",
@@ -138,17 +109,20 @@ const TelaRestaurante = () => {
   const details = RESTAURANT_DETAILS[restaurantePrincipal.name] || {
     address: "Rua das flores, 122 - Botafogo, Rio de Janeiro, RJ - CEP 22250-060",
     description: "Um espaço acolhedor e charmoso focado em proporcionar uma experiência gastronômica marcante com atendimento atencioso, ingredientes selecionados e pratos deliciosos preparados com excelência.",
-    gallery: [
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&auto=format&fit=crop&q=80"
-    ]
+    gallery: []
   };
 
   const displayAddress = restaurantePrincipal.address || details.address;
   const displayDescription = restaurantePrincipal.description || details.description;
+
+  let galleryImages = details.gallery;
+  if (restaurantePrincipal.galeria) {
+    try {
+      galleryImages = JSON.parse(restaurantePrincipal.galeria);
+    } catch (e) {
+      galleryImages = details.gallery;
+    }
+  }
 
   const [listaComentarios, setListaComentarios] = useState([]);
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState(false);
@@ -159,8 +133,11 @@ const TelaRestaurante = () => {
   const [meuUserId, setMeuUserId] = useState(null);
   const [meuNome, setMeuNome] = useState("");
   const [isFetchingUser, setIsFetchingUser] = useState(true);
+  const [tipoUsuario, setTipoUsuario] = useState("cliente");
+  const [isAddFotoOpen, setIsAddFotoOpen] = useState(false);
+  const [novaFotoUrl, setNovaFotoUrl] = useState("");
 
-  const { dishes } = usePratos(restaurantePrincipal.id);
+  const { dishes, refetch } = usePratos(restaurantePrincipal.id);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -172,7 +149,7 @@ const TelaRestaurante = () => {
           setMeuUserId(data.id);
           setMeuNome(data.nome);
           if (data.restaurante_ids) {
-             setMeusRestaurantesIds(data.restaurante_ids);
+            setMeusRestaurantesIds(data.restaurante_ids);
           }
         }
       } catch (e) {
@@ -186,61 +163,59 @@ const TelaRestaurante = () => {
 
   useEffect(() => {
     const fetchDados = async () => {
-      if (!id && isFetchingUser) return; // Wait for user check if no ID
-      
+      if (!id && isFetchingUser) return;
+
       const restId = id || (meusRestaurantesIds.length > 0 ? meusRestaurantesIds[0] : null);
       if (!restId) return;
-      
+
       try {
-        // Busca info do restaurante se não veio no state ou mudou o ID
-        if (!restauranteInfo || restauranteInfo.id != restId || !restauranteInfo.address) {
-           const restData = await restaurantService.buscarPorId(restId);
-           setRestauranteInfo({
-             id: restData.id,
-             name: restData.nome,
-             rating: parseFloat(restData.nota) || 0,
-             category: restData.categoria,
-             location: `${restData.cidade}, ${restData.estado}`,
-             image: restData.imagem_url || details.gallery[0],
-             address: restData.endereco && restData.endereco !== 'Não informado' ? `${restData.endereco} - ${restData.cidade}, ${restData.estado}` : "Endereço não informado",
-             description: restData.descricao || details.description
-           });
-        }
-        
-        // Busca avaliações reais da API
+        const restData = await restaurantService.buscarPorId(restId);
+        setRestauranteInfo({
+          id: restData.id,
+          name: restData.nome,
+          rating: parseFloat(restData.nota) || 0,
+          category: restData.categoria,
+          location: `${restData.cidade}, ${restData.estado}`,
+          image: restData.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80",
+          address: restData.endereco && restData.endereco !== 'Não informado' ? `${restData.endereco} - ${restData.cidade}, ${restData.estado}` : "Endereço não informado",
+          description: restData.descricao || details.description,
+          galeria: restData.galeria
+        });
+
+
         const avaliacoes = await avaliacaoService.listar({ id_restaurante: restId, apenas_restaurante: true });
         const comentariosFormatados = avaliacoes.map(av => ({
-           id: av.id,
-           id_usuario: av.id_usuario,
-           nome: av.usuario_nome || "Usuário",
-           iniciais: av.usuario_nome ? av.usuario_nome.substring(0,2).toUpperCase() : "US",
-           foto: av.usuario_foto,
-           nota: parseFloat(av.nota),
-           texto: av.comentario
+          id: av.id,
+          id_usuario: av.id_usuario,
+          nome: av.usuario_nome || "Usuário",
+          iniciais: av.usuario_nome ? av.usuario_nome.substring(0, 2).toUpperCase() : "US",
+          foto: av.usuario_foto,
+          nota: parseFloat(av.nota),
+          texto: av.comentario
         }));
         setListaComentarios(comentariosFormatados);
       } catch (e) {
         console.error("Erro ao carregar dados do restaurante", e);
       }
     };
-    
+
     fetchDados();
     window.scrollTo(0, 0);
-  }, [id, meusRestaurantesIds, isFetchingUser, restauranteInfo]);
+  }, [id, meusRestaurantesIds, isFetchingUser]);
 
 
 
   const handlePrevImage = (e) => {
     e?.stopPropagation();
-    if (selectedImageIndex !== null && details.gallery) {
-      setSelectedImageIndex((prev) => (prev === 0 ? details.gallery.length - 1 : prev - 1));
+    if (selectedImageIndex !== null && galleryImages) {
+      setSelectedImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));
     }
   };
 
   const handleNextImage = (e) => {
     e?.stopPropagation();
-    if (selectedImageIndex !== null && details.gallery) {
-      setSelectedImageIndex((prev) => (prev === details.gallery.length - 1 ? 0 : prev + 1));
+    if (selectedImageIndex !== null && galleryImages) {
+      setSelectedImageIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1));
     }
   };
 
@@ -248,7 +223,7 @@ const TelaRestaurante = () => {
     setSelectedImageIndex(null);
   };
 
-  // navegar usando as setas do teclado
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (selectedImageIndex !== null) {
@@ -266,7 +241,7 @@ const TelaRestaurante = () => {
     ? listaComentarios.reduce((soma, item) => soma + item.nota, 0) / listaComentarios.length
     : restaurantePrincipal.rating;
 
-  // Os pratos já vêm filtrados pela API pelo hook usePratos
+
   const pratosDoRestaurante = dishes;
 
   const comentariosExibidos = mostrarTodosComentarios ? listaComentarios : listaComentarios.slice(0, 2);
@@ -296,19 +271,19 @@ const TelaRestaurante = () => {
 
     try {
       const novaAvaliacao = await avaliacaoService.criar({
-         id_restaurante: parseInt(restaurantePrincipal.id, 10),
-         nota: parseFloat(nota),
-         comentario: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
+        id_restaurante: parseInt(restaurantePrincipal.id, 10),
+        nota: parseFloat(nota),
+        comentario: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
       });
-      
+
       const avLocal = {
-         id: novaAvaliacao.id || Date.now(),
-         id_usuario: meuUserId,
-         nome: meuNome || "Você",
-         iniciais: meuNome ? meuNome.substring(0, 2).toUpperCase() : "VC",
-         foto: null,
-         nota: parseFloat(novaAvaliacao.nota) || nota,
-         texto: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
+        id: novaAvaliacao.id || Date.now(),
+        id_usuario: meuUserId,
+        nome: meuNome || "Você",
+        iniciais: meuNome ? meuNome.substring(0, 2).toUpperCase() : "VC",
+        foto: null,
+        nota: parseFloat(novaAvaliacao.nota) || nota,
+        texto: comentario.trim() || "Avaliou este restaurante sem deixar comentário."
       };
 
       setListaComentarios([avLocal, ...listaComentarios]);
@@ -320,6 +295,46 @@ const TelaRestaurante = () => {
     } catch (e) {
       console.error(e);
       toast.error(e.response?.data?.error || "Erro ao adicionar avaliação.");
+    }
+  };
+
+  const handleConfirmarAdicionarFoto = async () => {
+    if (!novaFotoUrl.trim()) {
+      toast.warning("Por favor, insira uma URL válida.");
+      return;
+    }
+
+    try {
+      let currentGallery = [];
+      if (restaurantePrincipal.galeria) {
+        try {
+          currentGallery = JSON.parse(restaurantePrincipal.galeria);
+        } catch (e) {
+          currentGallery = [];
+        }
+      } else {
+        currentGallery = [...details.gallery];
+      }
+
+      currentGallery.push(novaFotoUrl.trim());
+
+      const { restaurantService } = await import("../services/api");
+      const updatedRest = await restaurantService.atualizar(restaurantePrincipal.id, {
+        nome: restaurantePrincipal.name,
+        galeria: JSON.stringify(currentGallery)
+      });
+
+      setRestauranteInfo({
+        ...restaurantePrincipal,
+        galeria: updatedRest.galeria
+      });
+
+      toast.success("Foto adicionada com sucesso!");
+      setIsAddFotoOpen(false);
+      setNovaFotoUrl("");
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Erro ao adicionar foto.");
+      console.error(error);
     }
   };
 
@@ -401,72 +416,107 @@ const TelaRestaurante = () => {
           </p>
         </section>
 
-        {details.gallery && details.gallery.length > 0 && (
+        {((galleryImages && galleryImages.length > 0) || (tipoUsuario === "restaurante" && meusRestaurantesIds.includes(Number(restaurantePrincipal.id)))) && (
           <section className="bg-white rounded-[24px] shadow-lg p-6 sm:p-10 border border-black/5 flex flex-col gap-6">
-            <div className="flex flex-col gap-1 border-b border-black/5 pb-3">
-              <h2 className="font-serif text-[22px] sm:text-[26px] font-extrabold text-black">
-                Galeria de Fotos
-              </h2>
-              <p className="text-[12px] sm:text-[13px] font-bold text-black/40 uppercase tracking-wider">
-                Conheça nosso espaço e nossas especialidades
-              </p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-black/5 pb-3">
+              <div>
+                <h2 className="font-serif text-[22px] sm:text-[26px] font-extrabold text-black">
+                  Galeria de Fotos
+                </h2>
+                <p className="text-[12px] sm:text-[13px] font-bold text-black/40 uppercase tracking-wider">
+                  Conheça nosso espaço e nossas especialidades
+                </p>
+              </div>
+              {tipoUsuario === "restaurante" && meusRestaurantesIds.includes(Number(restaurantePrincipal.id)) && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddFotoOpen(true)}
+                  className="px-4 h-[38px] bg-white text-[#C13D33] border-2 border-[#C13D33] hover:bg-[#C13D33]/10 text-[13px] font-bold rounded-[8px] cursor-pointer flex items-center justify-center transition-colors active:scale-98 uppercase tracking-wider"
+                >
+                  Adicionar Foto
+                </button>
+              )}
             </div>
 
-            <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-4 h-[440px]">
-              {details.gallery.slice(0, 5).map((imgUrl, idx) => {
-                const isFeatured = idx === 0;
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative overflow-hidden rounded-[16px] group cursor-pointer shadow-xs hover:shadow-md transition-all duration-300 ${isFeatured ? "col-span-2 row-span-2" : "col-span-1 row-span-1"
-                      }`}
-                  >
-                    <img
-                      src={imgUrl}
-                      alt={`Foto ${idx + 1} de ${restaurantePrincipal.name}`}
-                      className="w-full h-full object-cover transition-transform duration-500 scale-100 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
-                      <div className="text-white opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-300 bg-white/20 p-3 rounded-full backdrop-blur-xs">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                        </svg>
+            {galleryImages.length > 0 ? (
+              <>
+                <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-4 h-[440px]">
+                  {galleryImages.slice(0, 5).map((imgUrl, idx) => {
+                    const isFeatured = idx === 0;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={`relative overflow-hidden rounded-[16px] group cursor-pointer shadow-xs hover:shadow-md transition-all duration-300 ${isFeatured ? "col-span-2 row-span-2" : "col-span-1 row-span-1"
+                          }`}
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`Foto ${idx + 1} de ${restaurantePrincipal.name}`}
+                          className="w-full h-full object-cover transition-transform duration-500 scale-100 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
+                          <div className="text-white opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-300 bg-white/20 p-3 rounded-full backdrop-blur-xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex md:hidden overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  {galleryImages.map((imgUrl, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedImageIndex(idx)}
+                      className="flex-shrink-0 w-[260px] h-[190px] rounded-[16px] overflow-hidden snap-start relative active:scale-98 transition-transform"
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`Foto ${idx + 1} de ${restaurantePrincipal.name}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-full text-white text-[11px] font-bold">
+                        {idx + 1}/{galleryImages.length}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex md:hidden overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              {details.gallery.map((imgUrl, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setSelectedImageIndex(idx)}
-                  className="flex-shrink-0 w-[260px] h-[190px] rounded-[16px] overflow-hidden snap-start relative active:scale-98 transition-transform"
-                >
-                  <img
-                    src={imgUrl}
-                    alt={`Foto ${idx + 1} de ${restaurantePrincipal.name}`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-full text-white text-[11px] font-bold">
-                    {idx + 1}/{details.gallery.length}
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <div className="text-center py-10 bg-neutral-50/50 rounded-[12px] border border-dashed border-black/10 flex flex-col items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-black/30">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                </svg>
+                <p className="text-[14px] text-black/40 font-bold uppercase">Sua galeria está vazia</p>
+                <p className="text-[12px] text-black/30 font-semibold max-w-[260px] text-center">Adicione fotos do seu estabelecimento para atrair mais clientes!</p>
+              </div>
+            )}
           </section>
         )}
 
         <section ref={menuRef} className="bg-white rounded-[24px] shadow-lg p-6 sm:p-10 border border-black/5 flex flex-col gap-6 scroll-mt-6">
-          <h2 className="font-serif text-[22px] sm:text-[26px] font-extrabold text-black border-b border-black/5 pb-3">
-            Cardápio
-          </h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-black/5 pb-3">
+            <h2 className="font-serif text-[22px] sm:text-[26px] font-extrabold text-black">
+              Cardápio
+            </h2>
+            {tipoUsuario === "restaurante" && meusRestaurantesIds.includes(Number(restaurantePrincipal.id)) && (
+              <div className="w-full sm:w-[180px]">
+                <AdicionarPratoModal
+                  onPratoAdicionado={refetch}
+                  restaurantes={[{ id: restaurantePrincipal.id, nome: restaurantePrincipal.name }]}
+                  restauranteIdInicial={restaurantePrincipal.id}
+                />
+              </div>
+            )}
+          </div>
           {pratosDoRestaurante.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {pratosDoRestaurante.map((dish) => (
@@ -675,7 +725,7 @@ const TelaRestaurante = () => {
       </footer>
 
       {/* Lightbox Modal */}
-      {selectedImageIndex !== null && details.gallery && (
+      {selectedImageIndex !== null && galleryImages && (
         <div
           onClick={handleCloseLightbox}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xs transition-opacity duration-300"
@@ -708,12 +758,12 @@ const TelaRestaurante = () => {
             className="relative max-w-[90%] max-h-[80%] flex flex-col items-center gap-3"
           >
             <img
-              src={details.gallery[selectedImageIndex]}
+              src={galleryImages[selectedImageIndex]}
               alt={`Foto ampliada ${selectedImageIndex + 1} de ${restaurantePrincipal.name}`}
               className="max-w-full max-h-[70vh] md:max-h-[75vh] object-contain rounded-[12px] shadow-2xl border border-white/10 select-none"
             />
             <div className="text-white/80 text-[14px] font-bold bg-white/5 px-4 py-1.5 rounded-full border border-white/5 select-none">
-              {selectedImageIndex + 1} / {details.gallery.length}
+              {selectedImageIndex + 1} / {galleryImages.length}
             </div>
           </div>
 
@@ -727,6 +777,42 @@ const TelaRestaurante = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
           </button>
+        </div>
+      )}
+
+      {/* Modal Adicionar Foto */}
+      {isAddFotoOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setIsAddFotoOpen(false)}></div>
+          <div className="relative bg-white w-full max-w-[420px] rounded-[24px] shadow-2xl p-6 sm:p-8 flex flex-col gap-4 border border-black/5 animate-in fade-in zoom-in-95 duration-200">
+            <h2 className="font-serif text-[20px] font-extrabold text-black">Adicionar Foto à Galeria</h2>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[13px] font-bold text-black/40 uppercase tracking-wider">URL da Foto</label>
+              <input
+                type="url"
+                value={novaFotoUrl}
+                onChange={(e) => setNovaFotoUrl(e.target.value)}
+                placeholder="https://exemplo.com/foto.jpg"
+                className="w-full h-[48px] bg-neutral-100 rounded-[15px] px-4 text-[15px] border-none focus:ring-2 focus:ring-[#C13D33] outline-none text-black font-semibold"
+              />
+            </div>
+            <div className="flex justify-end gap-3 mt-2">
+              <button
+                type="button"
+                onClick={() => setIsAddFotoOpen(false)}
+                className="px-5 h-[40px] rounded-full text-[13px] font-bold bg-neutral-100 text-black/60 hover:bg-neutral-200 transition-colors border-none outline-none cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmarAdicionarFoto}
+                className="px-5 h-[40px] rounded-full text-[13px] font-bold bg-[#C13D33] text-white hover:bg-[#a53229] transition-colors border-none outline-none cursor-pointer"
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -4,7 +4,7 @@ const api = axios.create({
   baseURL: "http://localhost:5000",
 });
 
-// Interceptor para adicionar o token de autenticação em todas as requisições
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -27,6 +27,14 @@ export const pratoService = {
   },
   cadastrarPrato: async (dados) => {
     const response = await api.post("/pratos", dados);
+    return response.data;
+  },
+  atualizarPrato: async (id, dados) => {
+    const response = await api.put(`/pratos/${id}`, dados);
+    return response.data;
+  },
+  deletarPrato: async (id) => {
+    const response = await api.delete(`/pratos/${id}`);
     return response.data;
   }
 };
@@ -72,6 +80,10 @@ export const restaurantService = {
   },
   atualizar: async (id, dados) => {
     const response = await api.put(`/restaurantes/${id}`, dados);
+    return response.data;
+  },
+  deletar: async (id) => {
+    const response = await api.delete(`/restaurantes/${id}`);
     return response.data;
   }
 };

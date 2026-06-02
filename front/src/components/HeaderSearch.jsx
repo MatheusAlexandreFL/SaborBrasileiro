@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { restaurantService } from "../services/api";
 
-const HeaderSearch = () => {
+const HeaderSearch = ({ hideBackButton = false }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [allRestaurants, setAllRestaurants] = useState([]);
@@ -95,18 +95,20 @@ const HeaderSearch = () => {
 
   return (
       <header className="max-w-[1000px] w-full mx-auto px-4 sm:px-6 pt-6 flex justify-between items-center z-35 relative gap-4 mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="bg-white text-black px-4 py-2 rounded-full shadow-md border border-black/10 hover:bg-black/5 cursor-pointer font-bold text-[14px] flex items-center gap-1.5 transition-all outline-none shrink-0"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-          </svg>
-          <span>Voltar</span>
-        </button>
+        {!hideBackButton && (
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-white text-black px-4 py-2 rounded-full shadow-md border border-black/10 hover:bg-black/5 cursor-pointer font-bold text-[14px] flex items-center gap-1.5 transition-all outline-none shrink-0"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+            <span>Voltar</span>
+          </button>
+        )}
 
         {/* Barra de Busca de Restaurantes */}
-        <div className="relative w-full max-w-[320px]">
+        <div className="relative w-full max-w-[320px] ml-auto">
           <div className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-4 py-2 shadow-xs hover:shadow-md transition-all duration-300">
             <svg
               aria-hidden="true"

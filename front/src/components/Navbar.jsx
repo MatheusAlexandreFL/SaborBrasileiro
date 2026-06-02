@@ -182,11 +182,6 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
                 <Link to="/perfil" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
                   Meu Perfil
                 </Link>
-                {tipoUsuario !== "cliente" && (
-                  <Link to="/cadastro" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
-                    Cadastrar restaurante
-                  </Link>
-                )}
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
                   Sair
                 </Link>
@@ -318,11 +313,6 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
               <Link to="/perfil" onClick={() => setIsDesktopMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black">
                 Meu Perfil
               </Link>
-              {tipoUsuario !== "cliente" && (
-                <Link to="/cadastro" onClick={() => setIsDesktopMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
-                  Cadastrar restaurante
-                </Link>
-              )}
               <Link to="/login" onClick={() => setIsDesktopMenuOpen(false)} className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 no-underline hover:text-black border-t border-black/5">
                 Sair
               </Link>

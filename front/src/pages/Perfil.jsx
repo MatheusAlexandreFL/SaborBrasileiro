@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
+import ConfirmModal from "../components/ConfirmModal";
 import { userService } from "../services/api";
 
 const Perfil = () => {
@@ -36,6 +38,8 @@ const Perfil = () => {
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState(null);
   const [mensagemSenha, setMensagemSenha] = useState(null);
+  const [isConfirmExcluirOpen, setIsConfirmExcluirOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 
   useEffect(() => {
@@ -200,6 +204,25 @@ const Perfil = () => {
     setMensagemSenha(null);
   };
 
+  const handleExcluirRestauranteConfirmado = async () => {
+    if (!restauranteSelecionado) return;
+
+    try {
+      setSalvando(true);
+      setMensagem(null);
+      const { restaurantService } = await import("../services/api");
+      await restaurantService.deletar(restauranteSelecionado.id);
+      
+      setMensagem({ tipo: "sucesso", texto: "Restaurante excluído com sucesso!" });
+      setIsConfirmExcluirOpen(false);
+      await fetchPerfil();
+    } catch (error) {
+      setMensagem({ tipo: "erro", texto: error.response?.data?.error || error.message || "Erro ao excluir restaurante" });
+    } finally {
+      setSalvando(false);
+    }
+  };
+
   const handleEncerrarSessao = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("foto_perfil");
@@ -219,7 +242,7 @@ const Perfil = () => {
 
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black">
-      <Navbar onMenuClick={() => { }} userPhoto={fotoPerfil} hideSearch={true} hideFilter={true} />
+      <Navbar onMenuClick={() => setIsSidebarOpen(true)} userPhoto={fotoPerfil} hideSearch={true} hideFilter={true} />
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-6 py-10 flex flex-col gap-8">
         {/* Header */}
@@ -412,10 +435,25 @@ const Perfil = () => {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
+                     <div className="flex flex-col gap-1.5">
                       <label className="text-[14px] text-black/60 font-semibold">URL da Imagem de Capa do Restaurante</label>
                       <input type="url" value={imagemUrl} onChange={(e) => setImagemUrl(e.target.value)} placeholder="https://exemplo.com/foto-restaurante.jpg" className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
                     </div>
+
+                    {!isNovoRestaurante && restauranteSelecionado && (
+                      <div className="flex justify-end pt-3 border-t border-black/5 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsConfirmExcluirOpen(true)}
+                          className="px-4 py-2 rounded-full text-[13px] font-bold text-red-600 border border-red-600/30 hover:bg-red-50 transition-all cursor-pointer flex items-center gap-1.5 active:scale-[0.98]"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Excluir Restaurante
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -560,6 +598,30 @@ const Perfil = () => {
           &copy; 2026 Sabor Brasileiro. Todos os direitos reservados.
         </p>
       </footer>
+
+      <ConfirmModal
+        isOpen={isConfirmExcluirOpen}
+        title="Excluir Restaurante"
+        message={restauranteSelecionado ? `Tem certeza de que deseja excluir o restaurante "${restauranteSelecionado.nome}" permanentemente? Todos os pratos e avaliações associados serão excluídos.` : ""}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={handleExcluirRestauranteConfirmado}
+        onCancel={() => setIsConfirmExcluirOpen(false)}
+      />
+
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        navItems={["Início", "Sobre nós"]}
+        activeItem="Perfil"
+        onSelect={(item) => {
+          if (item === "Início") {
+            navigate("/");
+          } else if (item === "Sobre nós") {
+            navigate("/sobre-nos");
+          }
+        }}
+      />
     </div>
   );
 };

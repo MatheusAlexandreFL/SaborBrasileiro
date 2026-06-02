@@ -3,6 +3,8 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import DishCard from "../components/DishCard";
 import AvaliarButton from "../components/AvaliarButton";
 import AdicionarPratoModal from "../components/AdicionarPratoModal";
+import EditarPratoModal from "../components/EditarPratoModal";
+import ConfirmModal from "../components/ConfirmModal";
 import HeaderSearch from "../components/HeaderSearch";
 import { useToast } from "../context/ToastContext";
 import { pratoService, avaliacaoService, userService } from "../services/api";
@@ -21,7 +23,8 @@ const Prato = () => {
   const [meusRestaurantes, setMeusRestaurantes] = useState([]);
   const [meuUserId, setMeuUserId] = useState(null);
   const [meuNome, setMeuNome] = useState("");
-  
+  const [isConfirmExcluirOpen, setIsConfirmExcluirOpen] = useState(false);
+
   useEffect(() => {
     if (location.state) {
       setPratoInfo(location.state);
@@ -53,7 +56,7 @@ const Prato = () => {
     }
   };
 
-  // add: a pagina começa do topo 
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchUser = async () => {
@@ -65,10 +68,10 @@ const Prato = () => {
           setMeuUserId(data.id);
           setMeuNome(data.nome);
           if (data.restaurante_ids) {
-             setMeusRestaurantesIds(data.restaurante_ids);
+            setMeusRestaurantesIds(data.restaurante_ids);
           }
           if (data.restaurantes) {
-             setMeusRestaurantes(data.restaurantes);
+            setMeusRestaurantes(data.restaurantes);
           }
         }
       } catch (e) {
@@ -80,12 +83,10 @@ const Prato = () => {
 
   useEffect(() => {
     const fetchDados = async () => {
-      // Auto-load latest dish for restaurant owner if no ID is provided
       if (!id && (!pratoInfo || !pratoInfo.id) && meusRestaurantesIds.length > 0 && dishes.length > 0) {
         const targetRestId = pratoInfo?.restauranteId ? Number(pratoInfo.restauranteId) : Number(meusRestaurantesIds[0]);
         const myDishes = dishes.filter(d => Number(d.restauranteId) === targetRestId);
         if (myDishes.length > 0) {
-          // O usuário prefere que o PRIMEIRO prato fique em destaque sempre
           const firstDish = myDishes[0];
           try {
             const data = await pratoService.buscarPrato(firstDish.id);
@@ -99,7 +100,7 @@ const Prato = () => {
               restaurant: data.restaurante_nome,
               restauranteId: data.restaurante_id
             });
-          } catch(e) { console.error(e); }
+          } catch (e) { console.error(e); }
           return;
         }
       }
@@ -124,13 +125,13 @@ const Prato = () => {
 
         const avaliacoes = await avaliacaoService.listar({ id_prato: currentId });
         setListaComentarios(avaliacoes.map(av => ({
-           id: av.id,
-           id_usuario: av.id_usuario,
-           nome: av.usuario_nome || "Usuário",
-           iniciais: av.usuario_nome ? av.usuario_nome.substring(0,2).toUpperCase() : "US",
-           foto: av.usuario_foto,
-           nota: parseFloat(av.nota),
-           texto: av.comentario
+          id: av.id,
+          id_usuario: av.id_usuario,
+          nome: av.usuario_nome || "Usuário",
+          iniciais: av.usuario_nome ? av.usuario_nome.substring(0, 2).toUpperCase() : "US",
+          foto: av.usuario_foto,
+          nota: parseFloat(av.nota),
+          texto: av.comentario
         })));
       } catch (e) {
         console.error(e);
@@ -172,7 +173,7 @@ const Prato = () => {
         id: novaAvaliacao.id || Date.now(),
         id_usuario: meuUserId,
         nome: meuNome || "Você",
-        iniciais: meuNome ? meuNome.substring(0,2).toUpperCase() : "VC",
+        iniciais: meuNome ? meuNome.substring(0, 2).toUpperCase() : "VC",
         foto: null, // Pode ficar sem foto até recarregar
         nota: parseFloat(novaAvaliacao.nota) || dadosDaAvaliacao.nota,
         texto: dadosDaAvaliacao.comentario || ""
@@ -187,11 +188,52 @@ const Prato = () => {
     }
   };
 
+  const handlePratoAtualizado = async () => {
+    const currentId = id || pratoInfo?.id;
+    if (currentId) {
+      try {
+        const data = await pratoService.buscarPrato(currentId);
+        setPratoInfo({
+          id: data.id,
+          name: data.nome,
+          description: data.descricao,
+          price: `R$ ${parseFloat(data.preco).toFixed(2).replace('.', ',')}`,
+          image: data.foto_prato,
+          rating: 4.5,
+          restaurant: data.restaurante_nome,
+          restauranteId: data.restaurante_id
+        });
+        refetch();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleExcluirPratoConfirmado = async () => {
+    const currentId = id || pratoInfo?.id;
+    if (!currentId) return;
+
+    try {
+      await pratoService.deletarPrato(currentId);
+      toast.success("Prato excluído com sucesso!");
+      setIsConfirmExcluirOpen(false);
+      if (pratoPrincipal.restauranteId) {
+        navigate(`/restaurante/${pratoPrincipal.restauranteId}`);
+      } else {
+        navigate("/");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Erro ao excluir prato.");
+      console.error(error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black p-6 md:p-10">
-      <HeaderSearch />
+      <HeaderSearch hideBackButton={true} />
 
-      {/* correção: botão de Voltar agora fora da imagem*/}
+
       <div className="max-w-[1000px] w-full mx-auto mb-6">
         <button
           onClick={() => navigate(-1)}
@@ -205,10 +247,10 @@ const Prato = () => {
 
       <main className="flex-1 max-w-[1000px] w-full mx-auto flex flex-col gap-8 mb-12">
 
-        {/* add: posicionamento lado a lado( foto na esquerda e infos na direita) */}
+
         <div className="bg-white rounded-[24px] shadow-xl p-8 flex flex-col md:flex-row gap-8 lg:gap-12">
 
-          {/* add: imagem na esquerda */}
+
           <div className="w-full md:w-1/2 shrink-0 self-center">
             <img
               src={pratoPrincipal.image}
@@ -216,7 +258,7 @@ const Prato = () => {
               className="w-full h-auto object-cover rounded-[16px] max-h-[450px]"
             />
           </div>
-          {/* direita: informações */}
+
           <div className="w-full md:w-1/2 flex flex-col justify-center gap-6">
             <div className="flex flex-col items-center md:items-start text-center md:text-left gap-2">
               <span className="bg-[#4A3C24]/10 text-[#4A3C24] font-bold text-[12px] px-3 py-1 rounded-full w-fit">Receita Assinatura</span>
@@ -229,31 +271,51 @@ const Prato = () => {
               <p className="text-[15px] text-black/70 leading-relaxed">{pratoPrincipal.description}</p>
             </div>
 
-            {/* nova posição para o botão de avaliação */}
+
             <div className="mt-4 flex flex-col sm:flex-row justify-start gap-4">
               {(!meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId))) && (
                 <div className="w-full sm:w-[320px]">
-                  <AvaliarButton 
-                    tipo="prato" 
-                    nomeItem={pratoPrincipal.name} 
-                    onSubmit={handleSalvarAvaliacao} 
+                  <AvaliarButton
+                    tipo="prato"
+                    nomeItem={pratoPrincipal.name}
+                    onSubmit={handleSalvarAvaliacao}
                   />
                 </div>
               )}
               {tipoUsuario === "restaurante" && meusRestaurantes.length > 0 && (
-                <div className="w-full sm:w-[320px]">
-                  <AdicionarPratoModal 
-                    onPratoAdicionado={handlePratoAdicionado} 
-                    restaurantes={meusRestaurantes}
-                    restauranteIdInicial={meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId)) ? pratoPrincipal.restauranteId : meusRestaurantes[0].id}
-                  />
-                </div>
+                <>
+                  {meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId)) ? (
+                    <div className="flex flex-col sm:flex-row gap-4 w-full">
+                      <div className="w-full sm:w-[220px]">
+                        <EditarPratoModal
+                          prato={pratoPrincipal}
+                          onPratoAtualizado={handlePratoAtualizado}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsConfirmExcluirOpen(true)}
+                        className="w-full sm:w-[220px] h-[48px] bg-[#C13D33] hover:bg-[#a53229] text-white text-[13px] font-bold rounded-[8px] border-none outline-none cursor-pointer flex items-center justify-center transition-colors shadow-xs active:scale-98 uppercase tracking-widest font-sans"
+                      >
+                        Excluir Prato
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full sm:w-[320px]">
+                      <AdicionarPratoModal
+                        onPratoAdicionado={handlePratoAdicionado}
+                        restaurantes={meusRestaurantes}
+                        restauranteIdInicial={meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId)) ? pratoPrincipal.restauranteId : meusRestaurantes[0].id}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
 
-        {/* add: avaliações e recomendações (elementos originais) */}
+
         <div className="bg-white rounded-[24px] shadow-xl p-8 flex flex-col gap-10">
 
           <div className="flex flex-col gap-4">
@@ -316,6 +378,16 @@ const Prato = () => {
 
         </div>
       </main>
+
+      <ConfirmModal
+        isOpen={isConfirmExcluirOpen}
+        title="Excluir Prato"
+        message={`Tem certeza de que deseja excluir o prato "${pratoPrincipal.name}" permanentemente do cardápio?`}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={handleExcluirPratoConfirmado}
+        onCancel={() => setIsConfirmExcluirOpen(false)}
+      />
     </div>
   );
 };
