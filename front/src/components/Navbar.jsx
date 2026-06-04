@@ -23,7 +23,7 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
           category: r.categoria,
           location: `${r.cidade}, ${r.estado}`,
           image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80",
-          address: r.endereco,
+          address: r.endereco_completo,
           description: r.descricao
         }));
         setAllRestaurants(mappedRests);

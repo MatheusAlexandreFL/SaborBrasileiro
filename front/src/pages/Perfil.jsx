@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import ConfirmModal from "../components/ConfirmModal";
 import { userService } from "../services/api";
+import { CATEGORIES } from "../mockData";
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -19,7 +20,10 @@ const Perfil = () => {
   const [restauranteNome, setRestauranteNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [categoria, setCategoria] = useState("");
-  const [endereco, setEndereco] = useState("");
+  const [rua, setRua] = useState("");
+  const [numero, setNumero] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [cep, setCep] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -39,6 +43,7 @@ const Perfil = () => {
   const [mensagem, setMensagem] = useState(null);
   const [mensagemSenha, setMensagemSenha] = useState(null);
   const [isConfirmExcluirOpen, setIsConfirmExcluirOpen] = useState(false);
+  const [isConfirmExcluirContaOpen, setIsConfirmExcluirContaOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 
@@ -64,7 +69,7 @@ const Perfil = () => {
       if (data.restaurantes && data.restaurantes.length > 0) {
         setRestaurantes(data.restaurantes);
         selecionarRestaurante(data.restaurantes[0]);
-      } else if (data.tipoUsuario === "restaurante") {
+      } else if (data.tipoUsuario === "dono") {
         setRestaurantes([]);
         handleNovoRestaurante();
       }
@@ -94,7 +99,10 @@ const Perfil = () => {
     setRestauranteNome(rest.nome || "");
     setDescricao(rest.descricao || "");
     setCategoria(rest.categoria || "");
-    setEndereco(rest.endereco || "");
+    setRua(rest.rua || "");
+    setNumero(rest.numero || "");
+    setBairro(rest.bairro || "");
+    setCep(rest.cep || "");
     setCidade(rest.cidade || "");
     setEstado(rest.estado || "");
     setTelefone(rest.telefone || "");
@@ -107,7 +115,10 @@ const Perfil = () => {
     setRestauranteNome("");
     setDescricao("");
     setCategoria("");
-    setEndereco("");
+    setRua("");
+    setNumero("");
+    setBairro("");
+    setCep("");
     setCidade("");
     setEstado("");
     setTelefone("");
@@ -121,17 +132,20 @@ const Perfil = () => {
       const dadosUsuario = {
         nome,
         foto_perfil: fotoPerfil || null,
-        ...(tipoUsuario === "restaurante" && { cnpj: cnpj.replace(/\D/g, "") || null })
+        ...(tipoUsuario === "dono" && { cnpj: cnpj.replace(/\D/g, "") || null })
       };
 
       const result = await userService.updatePerfil(dadosUsuario);
       
-      if (tipoUsuario === "restaurante") {
+      if (tipoUsuario === "dono") {
         const dadosRestaurante = {
           nome: restauranteNome || "Não informado",
           descricao,
           categoria: categoria || "Outros",
-          endereco: endereco || "Não informado",
+          rua: rua || "Não informado",
+          numero: numero || "S/N",
+          bairro: bairro || "Não informado",
+          cep: cep || null,
           cidade: cidade || "Não informado",
           estado: estado || "NI",
           telefone,
@@ -193,7 +207,7 @@ const Perfil = () => {
       setCnpj(perfil.cnpj || "");
       if (perfil.restaurantes && perfil.restaurantes.length > 0) {
         selecionarRestaurante(perfil.restaurantes[0]);
-      } else if (tipoUsuario === "restaurante") {
+      } else if (tipoUsuario === "dono") {
         handleNovoRestaurante();
       }
     }
@@ -220,6 +234,18 @@ const Perfil = () => {
       setMensagem({ tipo: "erro", texto: error.response?.data?.error || error.message || "Erro ao excluir restaurante" });
     } finally {
       setSalvando(false);
+    }
+  };
+
+  const handleExcluirContaConfirmado = async () => {
+    try {
+      setSalvando(true);
+      await userService.deletarConta();
+      handleEncerrarSessao();
+    } catch (error) {
+      setMensagem({ tipo: "erro", texto: error.response?.data?.error || error.message || "Erro ao excluir conta" });
+      setSalvando(false);
+      setIsConfirmExcluirContaOpen(false);
     }
   };
 
@@ -339,7 +365,7 @@ const Perfil = () => {
                 </div>
 
                 {/* CNPJ */}
-                {tipoUsuario === "restaurante" && (
+                {tipoUsuario === "dono" && (
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[14px] text-black/60 font-semibold">CNPJ</label>
                     <input
@@ -354,7 +380,7 @@ const Perfil = () => {
                 )}
               </div>
 
-              {tipoUsuario === "restaurante" && (
+              {tipoUsuario === "dono" && (
                 <>
                   <div className="flex items-center gap-2 mb-4 mt-10">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#C13D33]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -408,20 +434,59 @@ const Perfil = () => {
                       <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={3} className="border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 py-2 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all resize-y"></textarea>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-4">
                       <div className="flex flex-col gap-1.5">
                         <label className="text-[14px] text-black/60 font-semibold">Categoria</label>
-                        <input type="text" value={categoria} onChange={(e) => setCategoria(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                        <div className="flex flex-wrap gap-2">
+                          {CATEGORIES.filter(c => c.id !== "all").map(c => {
+                            const isSelected = (categoria || "").split(",").map(item => item.trim()).includes(c.name);
+                            return (
+                              <label key={c.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all ${isSelected ? "border-[#C13D33] bg-[#C13D33]/10 text-[#C13D33]" : "border-black/10 bg-white text-black/60 hover:bg-black/5"}`}>
+                                <input
+                                  type="checkbox"
+                                  className="hidden"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const selected = (categoria || "").split(",").map(item => item.trim()).filter(Boolean);
+                                    if (e.target.checked) {
+                                      setCategoria([...selected, c.name].join(", "));
+                                    } else {
+                                      setCategoria(selected.filter(item => item !== c.name).join(", "));
+                                    }
+                                  }}
+                                />
+                                <span className="text-[13px] font-bold">{c.name}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <label className="text-[14px] text-black/60 font-semibold">Telefone</label>
-                        <input type="text" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                        <input type="text" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all max-w-[280px]" />
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[14px] text-black/60 font-semibold">Endereço</label>
-                      <input type="text" value={endereco} onChange={(e) => setEndereco(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[14px] text-black/60 font-semibold">Rua</label>
+                        <input type="text" value={rua} onChange={(e) => setRua(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[14px] text-black/60 font-semibold">Número</label>
+                        <input type="text" value={numero} onChange={(e) => setNumero(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[14px] text-black/60 font-semibold">Bairro</label>
+                        <input type="text" value={bairro} onChange={(e) => setBairro(e.target.value)} className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[14px] text-black/60 font-semibold">CEP</label>
+                        <input type="text" value={cep} onChange={(e) => setCep(e.target.value)} maxLength={9} placeholder="00000-000" className="h-[44px] border border-black/10 rounded-[8px] bg-[#F5E6CA]/20 px-4 text-[14px] outline-none focus:border-[#C13D33] focus:ring-1 focus:ring-[#C13D33] focus:bg-white transition-all" />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -590,6 +655,25 @@ const Perfil = () => {
             Sair da Conta
           </button>
         </div>
+
+        {/* Zona de Perigo - Excluir Conta */}
+        <div className="bg-white rounded-[16px] border border-red-200 shadow-xs p-5 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2 mb-4">
+          <div>
+            <h3 className="font-serif text-[18px] font-extrabold text-[#C13D33]">Excluir Minha Conta</h3>
+            <p className="text-[14px] text-black/50 font-medium mt-0.5 max-w-lg">
+              Atenção: Ao excluir sua conta, todos os seus dados (perfil, restaurantes, pratos e avaliações) serão apagados permanentemente. Esta ação não pode ser desfeita.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsConfirmExcluirContaOpen(true)}
+            className="px-8 py-3 rounded-full text-[15px] font-bold transition-all cursor-pointer border-none flex items-center gap-2 bg-[#C13D33] text-white hover:bg-[#a53229] active:scale-[0.98] shadow-sm hover:shadow-md whitespace-nowrap"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Excluir Conta
+          </button>
+        </div>
       </main>
 
 
@@ -607,6 +691,16 @@ const Perfil = () => {
         cancelText="Cancelar"
         onConfirm={handleExcluirRestauranteConfirmado}
         onCancel={() => setIsConfirmExcluirOpen(false)}
+      />
+
+      <ConfirmModal
+        isOpen={isConfirmExcluirContaOpen}
+        title="Excluir Conta Definitivamente"
+        message="Tem certeza absoluta que deseja excluir sua conta? TODOS os seus dados, restaurantes, pratos e avaliações serão perdidos para sempre."
+        confirmText="Sim, excluir minha conta"
+        cancelText="Cancelar"
+        onConfirm={handleExcluirContaConfirmado}
+        onCancel={() => setIsConfirmExcluirContaOpen(false)}
       />
 
       <Sidebar

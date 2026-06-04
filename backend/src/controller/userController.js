@@ -11,10 +11,10 @@ async function cadastrarUsuario(req, res) {
 }
 
 async function login(req, res) {
-    try {   
-        const { email, senha } = req.body; 
-        const { token, foto_perfil } = await userService.login(email, senha); 
-        
+    try {
+        const { email, senha } = req.body;
+        const { token, foto_perfil } = await userService.login(email, senha);
+
         res.json({ token, foto_perfil });
     } catch (error) {
         res.status(401).json({ error: error.message });
@@ -58,10 +58,20 @@ async function updateSenha(req, res) {
     }
 }
 
+async function deletarConta(req, res) {
+    try {
+        await userService.deletarConta(req.id);
+        res.status(204).send();
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+}
+
 export default {
     cadastrarUsuario,
     login,
     getPerfil,
     updatePerfil,
     updateSenha,
+    deletarConta,
 };

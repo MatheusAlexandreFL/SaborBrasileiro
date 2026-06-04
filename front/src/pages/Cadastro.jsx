@@ -34,8 +34,8 @@ const Cadastro = () => {
                 email,
                 senha,
                 tipoUsuario,
-                cnpj: tipoUsuario === "restaurante" ? cnpj : null,
-                nome_restaurante: tipoUsuario === "restaurante" ? nomeRestaurante : null
+                cnpj: tipoUsuario === "dono" ? cnpj : null,
+                nome_restaurante: tipoUsuario === "dono" ? nomeRestaurante : null
             };
 
             await authService.cadastrar(dadosCadastro);
@@ -82,7 +82,7 @@ const Cadastro = () => {
                             <Input value={email} label="Email" type="email" onChange={(evento) => setEmail(evento.target.value)} />
                             <Input value={senha} label="Senha" type="password" onChange={(evento) => setSenha(evento.target.value)} />
                             
-                            {tipoUsuario === "restaurante" && (
+                            {tipoUsuario === "dono" && (
                                 <>
                                     <Input value={nomeRestaurante} label="Nome do Restaurante" type="text" onChange={(evento) => setNomeRestaurante(evento.target.value)} />
                                     <Input value={cnpj} label="CNPJ" type="text" onChange={(evento) => setCnpj(evento.target.value)} />

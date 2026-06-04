@@ -24,9 +24,9 @@ async function criar_avaliacao(req, res) {
 async function listar_avaliacoes(req, res) {
     try {
         const { id_restaurante, id_prato, apenas_restaurante } = req.query;
-        
-        const avaliacoes = await avaliacaoService.listar_avaliacoes({ 
-            id_restaurante, 
+
+        const avaliacoes = await avaliacaoService.listar_avaliacoes({
+            id_restaurante,
             id_prato,
             apenas_restaurante: apenas_restaurante === 'true'
         });

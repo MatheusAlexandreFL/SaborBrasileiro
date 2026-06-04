@@ -11,12 +11,14 @@ async function cadastrar_prato(nome, descricao, preco, foto, usuario_id, restaur
     
     if (!restaurante) {
         const usuario = await database('usuarios').where({ id: usuario_id }).first();
-        if (usuario && usuario.tipoUsuario === 'restaurante') {
+        if (usuario && usuario.tipoUsuario === 'dono') {
             const [newRestauranteId] = await database("restaurantes").insert({
                 usuario_id: usuario_id,
                 nome: usuario.nome,
                 categoria: 'Outros',
-                endereco: 'Não informado',
+                rua: 'Não informado',
+                numero: 'S/N',
+                bairro: 'Não informado',
                 cidade: 'Não informado',
                 estado: 'NI'
             });

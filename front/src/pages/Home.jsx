@@ -38,30 +38,14 @@ const Home = () => {
       }
 
       try {
-        const { avaliacaoService } = await import("../services/api");
-        const [data, todasAvaliacoes] = await Promise.all([
-          restaurantService.listar(),
-          avaliacaoService.listar({})
-        ]);
-
-        const medias = {};
-        todasAvaliacoes.forEach(av => {
-            if (!av.id_prato && av.id_restaurante) {
-                if (!medias[av.id_restaurante]) medias[av.id_restaurante] = { sum: 0, count: 0 };
-                medias[av.id_restaurante].sum += parseFloat(av.nota);
-                medias[av.id_restaurante].count++;
-            }
-        });
+        const data = await restaurantService.listar();
 
         const mapped = data.map(r => {
-          const m = medias[r.id];
-          const notaDinamica = m && m.count > 0 ? (m.sum / m.count) : (parseFloat(r.nota) || 0);
           return {
             id: r.id,
             name: r.nome,
-            rating: notaDinamica,
+            rating: parseFloat(r.nota) || 0,
             category: r.categoria,
-            categoryKey: r.categoria?.toLowerCase().split(" ")[0] || "todos",
             location: `${r.cidade}, ${r.estado}`,
             image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60"
           };
@@ -76,7 +60,8 @@ const Home = () => {
   }, []);
 
   const filteredRestaurants = restaurants.filter((r) => {
-    const matchesCategory = selectedCategory === "all" || r.categoryKey === selectedCategory;
+    const selectedCategoryName = CATEGORIES.find(c => c.id === selectedCategory)?.name;
+    const matchesCategory = selectedCategory === "all" || (r.category && r.category.includes(selectedCategoryName));
     const matchesSearch =
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -86,7 +71,8 @@ const Home = () => {
 
   const filteredDishes = dishes.filter((d) => {
     const parentRestaurant = restaurants.find(r => String(r.id) === String(d.restauranteId));
-    const matchesCategory = selectedCategory === "all" || (parentRestaurant && parentRestaurant.categoryKey === selectedCategory);
+    const selectedCategoryName = CATEGORIES.find(c => c.id === selectedCategory)?.name;
+    const matchesCategory = selectedCategory === "all" || (parentRestaurant && parentRestaurant.category && parentRestaurant.category.includes(selectedCategoryName));
     const matchesSearch =
       d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       d.restaurant.toLowerCase().includes(searchQuery.toLowerCase());
@@ -121,7 +107,7 @@ const Home = () => {
             <p className="text-[18px] text-black/60 font-medium leading-relaxed max-w-[480px]">
               Descubra lugares incríveis, pratos inesquecíveis e experiências únicas.
             </p>
-            {tipoUsuario === "restaurante" && (
+            {tipoUsuario === "dono" && (
               <div className="flex flex-wrap gap-3 mt-2">
                 {meusRestaurantes.length > 0 ? (
                   <div className="relative">

@@ -10,7 +10,7 @@ function obterStatusErro(error) {
     return 400;
 }
 
-async function cadastrar_prato(req, res){
+async function cadastrar_prato(req, res) {
     try {
         const { nome, descricao, preco, foto, restaurante_id } = req.body;
         const usuario_id = req.id;
@@ -21,7 +21,7 @@ async function cadastrar_prato(req, res){
     }
 }
 
-async function atualizar_prato(req, res){
+async function atualizar_prato(req, res) {
     try {
         const { id } = req.params;
         const { nome, descricao, preco, foto } = req.body;
@@ -33,7 +33,7 @@ async function atualizar_prato(req, res){
     }
 }
 
-async function deletar_prato(req, res){
+async function deletar_prato(req, res) {
     try {
         const { id } = req.params;
         const usuario_id = req.id;
@@ -44,7 +44,7 @@ async function deletar_prato(req, res){
     }
 }
 
-async function listar_pratos(req, res){
+async function listar_pratos(req, res) {
     try {
         const id_restaurante = req.query.id_restaurante;
         const pratos = await pratoService.listar_pratos(id_restaurante);
@@ -54,7 +54,7 @@ async function listar_pratos(req, res){
     }
 }
 
-async function buscar_prato(req, res){
+async function buscar_prato(req, res) {
     try {
         const { id } = req.params;
         const prato = await pratoService.buscar_prato(id);

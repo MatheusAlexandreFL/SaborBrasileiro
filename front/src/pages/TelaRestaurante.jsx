@@ -177,7 +177,7 @@ const TelaRestaurante = () => {
           category: restData.categoria,
           location: `${restData.cidade}, ${restData.estado}`,
           image: restData.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80",
-          address: restData.endereco && restData.endereco !== 'Não informado' ? `${restData.endereco} - ${restData.cidade}, ${restData.estado}` : "Endereço não informado",
+          address: restData.endereco_completo || "Endereço não informado",
           description: restData.descricao || details.description,
           galeria: restData.galeria
         });
@@ -416,7 +416,7 @@ const TelaRestaurante = () => {
           </p>
         </section>
 
-        {((galleryImages && galleryImages.length > 0) || (tipoUsuario === "restaurante" && meusRestaurantesIds.includes(Number(restaurantePrincipal.id)))) && (
+        {((galleryImages && galleryImages.length > 0) || (tipoUsuario === "dono" && meusRestaurantesIds.includes(Number(restaurantePrincipal.id)))) && (
           <section className="bg-white rounded-[24px] shadow-lg p-6 sm:p-10 border border-black/5 flex flex-col gap-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-black/5 pb-3">
               <div>
@@ -427,7 +427,7 @@ const TelaRestaurante = () => {
                   Conheça nosso espaço e nossas especialidades
                 </p>
               </div>
-              {tipoUsuario === "restaurante" && meusRestaurantesIds.includes(Number(restaurantePrincipal.id)) && (
+              {tipoUsuario === "dono" && meusRestaurantesIds.includes(Number(restaurantePrincipal.id)) && (
                 <button
                   type="button"
                   onClick={() => setIsAddFotoOpen(true)}
@@ -507,7 +507,7 @@ const TelaRestaurante = () => {
             <h2 className="font-serif text-[22px] sm:text-[26px] font-extrabold text-black">
               Cardápio
             </h2>
-            {tipoUsuario === "restaurante" && meusRestaurantesIds.includes(Number(restaurantePrincipal.id)) && (
+            {tipoUsuario === "dono" && meusRestaurantesIds.includes(Number(restaurantePrincipal.id)) && (
               <div className="w-full sm:w-[180px]">
                 <AdicionarPratoModal
                   onPratoAdicionado={refetch}

@@ -17,9 +17,9 @@ const TipoUsuarioSeletor = ({ tipoUsuario, setTipoUsuario }) => {
             {/* botão Dono de Restaurante */}
             <button
                 type="button"
-                onClick={() => setTipoUsuario("restaurante")}
+                onClick={() => setTipoUsuario("dono")}
                 className={`flex-1 h-full m-[15px] text-center border-none text-[14px] font-bold rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center ${
-                    tipoUsuario === "restaurante"
+                    tipoUsuario === "dono"
                         ? "bg-[#C13D33] text-[#ffffff] shadow-sm"
                         : "bg-transparent text-[#000000]/60"
                 }`}

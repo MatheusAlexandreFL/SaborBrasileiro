@@ -14,7 +14,7 @@ const App = () => {
         <ToastProvider>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                    <Route path="/" element={<Login />} />
                     <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/cadastro" element={<Cadastro />} />

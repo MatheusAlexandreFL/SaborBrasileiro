@@ -4,7 +4,10 @@ const CAMPOS_PERMITIDOS = [
   'nome',
   'descricao',
   'categoria',
-  'endereco',
+  'rua',
+  'numero',
+  'bairro',
+  'cep',
   'cidade',
   'estado',
   'telefone',
@@ -12,6 +15,13 @@ const CAMPOS_PERMITIDOS = [
   'nota',
   'galeria',
 ];
+
+function montarEnderecoCompleto(restaurante) {
+  const { rua, numero, bairro, cidade, estado, cep } = restaurante;
+  const partes = [rua, numero, bairro, cidade, estado].filter(Boolean);
+  if (cep) partes.push(cep);
+  return partes.join(', ');
+}
 
 function montarPayloadRestaurante(dados) {
   return CAMPOS_PERMITIDOS.reduce((payload, campo) => {
@@ -24,7 +34,7 @@ function montarPayloadRestaurante(dados) {
 }
 
 function validarCamposObrigatorios(payload) {
-  const obrigatorios = ['nome', 'categoria', 'endereco', 'cidade', 'estado'];
+  const obrigatorios = ['nome', 'categoria', 'rua', 'numero', 'bairro', 'cidade', 'estado'];
   const ausentes = obrigatorios.filter((campo) => !payload[campo]);
 
   if (ausentes.length > 0) {
@@ -33,12 +43,17 @@ function validarCamposObrigatorios(payload) {
 }
 
 async function listar() {
-  return database('restaurantes')
+  const restaurantes = await database('restaurantes')
     .leftJoin('avaliacoes', 'restaurantes.id', 'avaliacoes.id_restaurante')
     .select('restaurantes.*')
     .select(database.raw('COALESCE(AVG(avaliacoes.nota), 0) as nota'))
     .groupBy('restaurantes.id')
     .orderBy('restaurantes.nome');
+
+  return restaurantes.map((r) => ({
+    ...r,
+    endereco_completo: montarEnderecoCompleto(r),
+  }));
 }
 
 async function buscarPorId(id) {
@@ -54,6 +69,7 @@ async function buscarPorId(id) {
     throw new Error('Restaurante não encontrado');
   }
 
+  restaurante.endereco_completo = montarEnderecoCompleto(restaurante);
   return restaurante;
 }
 

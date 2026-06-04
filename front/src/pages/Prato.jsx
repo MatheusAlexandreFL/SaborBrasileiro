@@ -282,7 +282,7 @@ const Prato = () => {
                   />
                 </div>
               )}
-              {tipoUsuario === "restaurante" && meusRestaurantes.length > 0 && (
+              {tipoUsuario === "dono" && meusRestaurantes.length > 0 && (
                 <>
                   {meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId)) ? (
                     <div className="flex flex-col sm:flex-row gap-4 w-full">

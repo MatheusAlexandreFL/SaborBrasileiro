@@ -62,6 +62,10 @@ export const userService = {
   updateSenha: async (senhas) => {
     const response = await api.put("/usuarios/perfil/senha", senhas);
     return response.data;
+  },
+  deletarConta: async () => {
+    const response = await api.delete("/usuarios/perfil");
+    return response.data;
   }
 };
 

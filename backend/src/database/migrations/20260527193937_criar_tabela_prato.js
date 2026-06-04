@@ -14,7 +14,7 @@ export function up(knex) {
     table.string('nome').notNullable();
     table.string('descricao').notNullable();
     table.decimal('preco', 10, 2).notNullable();
-    table.string('foto_prato').nullable();
+    table.text('foto_prato').nullable();
   });
 };
 

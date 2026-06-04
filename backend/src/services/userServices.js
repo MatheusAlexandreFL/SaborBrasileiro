@@ -12,21 +12,24 @@ async function cadastrarUsuario(dados) {
     }
 
     const hash = await bcrypt.hash(senha, 10);
+    const tipo = cnpj ? 'dono' : (tipoUsuario || 'cliente');
     const [userId] = await database("usuarios").insert({
         nome,
         email,
         senha: hash,
-        tipoUsuario,
+        tipoUsuario: tipo,
         cnpj,
         foto_perfil
     });
 
-    if (tipoUsuario === 'restaurante') {
+    if (tipo === 'dono') {
         await database("restaurantes").insert({
             usuario_id: userId,
             nome: nome_restaurante || nome,
             categoria: 'Outros',
-            endereco: 'Não informado',
+            rua: 'Não informado',
+            numero: 'S/N',
+            bairro: 'Não informado',
             cidade: 'Não informado',
             estado: 'NI'
         });
@@ -63,9 +66,9 @@ async function getPerfil(userId) {
         throw new Error('Usuário não encontrado');
     }
 
-    if (usuario.tipoUsuario?.toLowerCase() === 'restaurante' || usuario.tipoUsuario?.toLowerCase() === 'dono') {
+    if (usuario.tipoUsuario?.toLowerCase() === 'dono') {
         const restaurantes = await database("restaurantes")
-            .select('id', 'nome', 'descricao', 'categoria', 'endereco', 'cidade', 'estado', 'telefone', 'imagem_url')
+            .select('id', 'nome', 'descricao', 'categoria', 'rua', 'numero', 'bairro', 'cep', 'cidade', 'estado', 'telefone', 'imagem_url')
             .where({ usuario_id: userId });
         if (restaurantes.length > 0) {
             usuario.restaurantes = restaurantes;
@@ -93,6 +96,10 @@ async function updatePerfil(userId, dados) {
     }
 
     if (dadosParaAtualizar.cnpj) {
+        if (typeof dadosParaAtualizar.cnpj !== 'string' || dadosParaAtualizar.cnpj.length !== 14) {
+            throw new Error('O CNPJ deve ter exatamente 14 caracteres numéricos.');
+        }
+
         const cnpjExistente = await database("usuarios")
             .where({ cnpj: dadosParaAtualizar.cnpj })
             .whereNot({ id: userId })
@@ -100,6 +107,10 @@ async function updatePerfil(userId, dados) {
         if (cnpjExistente) {
             throw new Error('CNPJ já cadastrado por outro usuário');
         }
+    }
+
+    if (dadosParaAtualizar.cnpj) {
+        dadosParaAtualizar.tipoUsuario = 'dono';
     }
 
     if (Object.keys(dadosParaAtualizar).length > 0) {
@@ -130,10 +141,19 @@ async function updateSenha(userId, senhaAtual, novaSenha) {
     return { message: 'Senha alterada com sucesso' };
 }
 
+async function deletarConta(userId) {
+    const deletados = await database("usuarios").where({ id: userId }).del();
+    if (deletados === 0) {
+        throw new Error('Usuário não encontrado');
+    }
+    return { message: 'Conta excluída com sucesso' };
+}
+
 export default {
     login,
     getPerfil,
     updatePerfil,
     updateSenha,
-    cadastrarUsuario
+    cadastrarUsuario,
+    deletarConta
 };
