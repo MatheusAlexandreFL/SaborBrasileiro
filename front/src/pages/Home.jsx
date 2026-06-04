@@ -89,6 +89,7 @@ const Home = () => {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onMenuClick={() => setIsSidebarOpen(true)}
+        hideFilter={true}
       />
 
 
