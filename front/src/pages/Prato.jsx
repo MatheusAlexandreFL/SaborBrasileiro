@@ -282,9 +282,9 @@ const Prato = () => {
                   />
                 </div>
               )}
-              {tipoUsuario === "dono" && meusRestaurantes.length > 0 && (
+              {tipoUsuario === "dono" && meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId)) && (
                 <>
-                  {meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId)) ? (
+                  {pratoPrincipal.id ? (
                     <div className="flex flex-col sm:flex-row gap-4 w-full">
                       <div className="w-full sm:w-[220px]">
                         <EditarPratoModal
@@ -305,7 +305,7 @@ const Prato = () => {
                       <AdicionarPratoModal
                         onPratoAdicionado={handlePratoAdicionado}
                         restaurantes={meusRestaurantes}
-                        restauranteIdInicial={meusRestaurantesIds.includes(Number(pratoPrincipal.restauranteId)) ? pratoPrincipal.restauranteId : meusRestaurantes[0].id}
+                        restauranteIdInicial={pratoPrincipal.restauranteId}
                       />
                     </div>
                   )}
