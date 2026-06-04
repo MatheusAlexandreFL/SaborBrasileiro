@@ -97,7 +97,7 @@ const HeaderSearch = ({ hideBackButton = false }) => {
       <header className="max-w-[1000px] w-full mx-auto px-4 sm:px-6 pt-6 flex justify-between items-center z-35 relative gap-4 mb-6">
         {!hideBackButton && (
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/home")}
             className="bg-white text-black px-4 py-2 rounded-full shadow-md border border-black/10 hover:bg-black/5 cursor-pointer font-bold text-[14px] flex items-center gap-1.5 transition-all outline-none shrink-0"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">

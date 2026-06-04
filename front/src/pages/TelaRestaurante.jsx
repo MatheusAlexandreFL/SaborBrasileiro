@@ -145,7 +145,7 @@ const TelaRestaurante = () => {
         const token = localStorage.getItem("token");
         if (token) {
           const data = await userService.getPerfil();
-          setTipoUsuario(data.tipoUsuario || "cliente");
+          setTipoUsuario(data.tipoUsuario);
           setMeuUserId(data.id);
           setMeuNome(data.nome);
           if (data.restaurante_ids) {

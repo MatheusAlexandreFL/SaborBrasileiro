@@ -236,7 +236,7 @@ const Prato = () => {
 
       <div className="max-w-[1000px] w-full mx-auto mb-6">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/home")}
           className="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-black/5 cursor-pointer border-none outline-none"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
