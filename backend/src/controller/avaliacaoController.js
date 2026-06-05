@@ -1,31 +1,22 @@
 import avaliacaoService from '../services/avaliacaoService.js';
+import { obterStatusErro } from '../utils/httpErrors.js';
 
-function obterStatusErro(error) {
-    if (error.message.includes('não encontrada')) {
-        return 404;
-    }
-    if (error.message.includes('permissão')) {
-        return 403;
-    }
-    return 400;
-}
-
-async function criar_avaliacao(req, res) {
+async function criarAvaliacao(req, res) {
     try {
         const { id_restaurante, id_prato, nota, comentario } = req.body;
         const id_usuario = req.id;
-        const avaliacao = await avaliacaoService.criar_avaliacao({ id_usuario, id_restaurante, id_prato, nota, comentario });
+        const avaliacao = await avaliacaoService.criarAvaliacao({ id_usuario, id_restaurante, id_prato, nota, comentario });
         res.status(201).json(avaliacao);
     } catch (error) {
         res.status(obterStatusErro(error)).json({ error: error.message });
     }
 }
 
-async function listar_avaliacoes(req, res) {
+async function listarAvaliacoes(req, res) {
     try {
         const { id_restaurante, id_prato, apenas_restaurante } = req.query;
 
-        const avaliacoes = await avaliacaoService.listar_avaliacoes({
+        const avaliacoes = await avaliacaoService.listarAvaliacoes({
             id_restaurante,
             id_prato,
             apenas_restaurante: apenas_restaurante === 'true'
@@ -36,23 +27,23 @@ async function listar_avaliacoes(req, res) {
     }
 }
 
-async function editar_avaliacao(req, res) {
+async function editarAvaliacao(req, res) {
     try {
         const { id } = req.params;
         const { nota, comentario } = req.body;
         const id_usuario = req.id;
-        const avaliacao = await avaliacaoService.editar_avaliacao(id, id_usuario, { nota, comentario });
+        const avaliacao = await avaliacaoService.editarAvaliacao(id, id_usuario, { nota, comentario });
         res.json(avaliacao);
     } catch (error) {
         res.status(obterStatusErro(error)).json({ error: error.message });
     }
 }
 
-async function deletar_avaliacao(req, res) {
+async function deletarAvaliacao(req, res) {
     try {
         const { id } = req.params;
         const id_usuario = req.id;
-        const avaliacao = await avaliacaoService.deletar_avaliacao(id, id_usuario);
+        const avaliacao = await avaliacaoService.deletarAvaliacao(id, id_usuario);
         res.json(avaliacao);
     } catch (error) {
         res.status(obterStatusErro(error)).json({ error: error.message });
@@ -60,9 +51,8 @@ async function deletar_avaliacao(req, res) {
 }
 
 export default {
-    criar_avaliacao,
-    editar_avaliacao,
-    deletar_avaliacao,
-    listar_avaliacoes
-}
-
+    criarAvaliacao,
+    editarAvaliacao,
+    deletarAvaliacao,
+    listarAvaliacoes
+};

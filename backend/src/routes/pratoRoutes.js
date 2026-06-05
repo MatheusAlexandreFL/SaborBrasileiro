@@ -5,10 +5,10 @@ import validarPrato from '../middleware/validarPrato.js';
 
 const router = express.Router();
 
-router.post('/', auth, validarPrato, pratoController.cadastrar_prato);
-router.put('/:id', auth, validarPrato, pratoController.atualizar_prato);
-router.delete('/:id', auth, pratoController.deletar_prato);
-router.get('/', auth, pratoController.listar_pratos);
-router.get('/:id', auth, pratoController.buscar_prato);
+router.post('/', auth, validarPrato, pratoController.cadastrarPrato);
+router.put('/:id', auth, validarPrato, pratoController.atualizarPrato);
+router.delete('/:id', auth, pratoController.deletarPrato);
+router.get('/', pratoController.listarPratos);
+router.get('/:id', pratoController.buscarPrato);
 
 export default router;

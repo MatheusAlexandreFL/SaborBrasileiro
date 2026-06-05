@@ -5,9 +5,9 @@ import avaliacaoController from '../controller/avaliacaoController.js';
 
 const router = express.Router();
 
-router.post('/', auth, validarAvaliacao, avaliacaoController.criar_avaliacao);
-router.put('/:id', auth, validarAvaliacao, avaliacaoController.editar_avaliacao);
-router.delete('/:id', auth, avaliacaoController.deletar_avaliacao);
-router.get('/', auth, avaliacaoController.listar_avaliacoes);
+router.post('/', auth, validarAvaliacao, avaliacaoController.criarAvaliacao);
+router.put('/:id', auth, validarAvaliacao, avaliacaoController.editarAvaliacao);
+router.delete('/:id', auth, avaliacaoController.deletarAvaliacao);
+router.get('/', auth, avaliacaoController.listarAvaliacoes);
 
 export default router;

@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { RESTAURANTS } from "../mockData";
 import DishCard from "../components/DishCard";
 import AdicionarPratoModal from "../components/AdicionarPratoModal";
 import { useToast } from "../context/ToastContext";
@@ -318,7 +317,6 @@ const TelaRestaurante = () => {
 
       currentGallery.push(novaFotoUrl.trim());
 
-      const { restaurantService } = await import("../services/api");
       const updatedRest = await restaurantService.atualizar(restaurantePrincipal.id, {
         nome: restaurantePrincipal.name,
         galeria: JSON.stringify(currentGallery)

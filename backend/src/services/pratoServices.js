@@ -1,6 +1,6 @@
 import database from '../database/exports.js';
 
-async function cadastrar_prato(nome, descricao, preco, foto, usuario_id, restaurante_id) {
+async function cadastrarPrato(nome, descricao, preco, foto, usuario_id, restaurante_id) {
     let restaurante;
     
     if (restaurante_id) {
@@ -39,7 +39,7 @@ async function cadastrar_prato(nome, descricao, preco, foto, usuario_id, restaur
     return pratoId;
 }
 
-async function atualizar_prato(id, nome, descricao, preco, foto, usuario_id) {
+async function atualizarPrato(id, nome, descricao, preco, foto, usuario_id) {
     const restauranteIds = await database('restaurantes').where({ usuario_id: usuario_id }).pluck('id');
     if (restauranteIds.length === 0) {
         throw new Error('Nenhum restaurante encontrado associado a este usuário.');
@@ -64,7 +64,7 @@ async function atualizar_prato(id, nome, descricao, preco, foto, usuario_id) {
         });
 }
 
-async function deletar_prato(id, usuario_id) {
+async function deletarPrato(id, usuario_id) {
     const restauranteIds = await database('restaurantes').where({ usuario_id: usuario_id }).pluck('id');
     if (restauranteIds.length === 0) {
         throw new Error('Nenhum restaurante encontrado associado a este usuário.');
@@ -80,7 +80,7 @@ async function deletar_prato(id, usuario_id) {
     }
 }
 
-async function listar_pratos(id_restaurante) {
+async function listarPratos(id_restaurante) {
     let query = database('pratos')
         .leftJoin('avaliacoes', 'pratos.id', 'avaliacoes.id_prato')
         .join('restaurantes', 'pratos.restaurante_id', '=', 'restaurantes.id')
@@ -98,7 +98,7 @@ async function listar_pratos(id_restaurante) {
     return await query;
 }
 
-async function buscar_prato(id) {
+async function buscarPrato(id) {
     return await database('pratos')
         .leftJoin('avaliacoes', 'pratos.id', 'avaliacoes.id_prato')
         .join('restaurantes', 'pratos.restaurante_id', '=', 'restaurantes.id')
@@ -113,9 +113,9 @@ async function buscar_prato(id) {
 }
 
 export default {
-    cadastrar_prato,
-    atualizar_prato,
-    deletar_prato,
-    listar_pratos,
-    buscar_prato
+    cadastrarPrato,
+    atualizarPrato,
+    deletarPrato,
+    listarPratos,
+    buscarPrato
 };

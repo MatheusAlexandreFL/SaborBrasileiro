@@ -10,6 +10,9 @@ async function createDatabase() {
   });
 
   const dbName = process.env.SERVER_DATABASE;
+  if (!dbName || !/^[a-zA-Z0-9_]+$/.test(dbName)) {
+    throw new Error('Nome do banco de dados inválido ou inseguro no arquivo .env.');
+  }
   await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
   console.log(`Banco de dados '${dbName}' verificado/criado com sucesso.`);
   await connection.end();

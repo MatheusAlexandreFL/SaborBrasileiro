@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { restaurantService } from "../services/api";
+import { restaurantService, pratoService } from "../services/api";
 
 const HeaderSearch = ({ hideBackButton = false }) => {
   const navigate = useNavigate();
@@ -11,7 +11,6 @@ const HeaderSearch = ({ hideBackButton = false }) => {
   useEffect(() => {
     const fetchSearchData = async () => {
       try {
-        const { pratoService } = await import("../services/api");
         const [rests, prats] = await Promise.all([
           restaurantService.listar(),
           pratoService.listarPratos()

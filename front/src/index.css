@@ -49,3 +49,29 @@ body {
   animation: toastProgress linear forwards;
 }
 
+/* Custom Scrollbar Utility */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(245, 230, 202, 0.2);
+  border-radius: 99px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(193, 61, 51, 0.4);
+  border-radius: 99px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(193, 61, 51, 0.8);
+}
+
+/* Firefox compatibility */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(193, 61, 51, 0.4) rgba(245, 230, 202, 0.2);
+}
+

@@ -12,7 +12,6 @@ const CAMPOS_PERMITIDOS = [
   'estado',
   'telefone',
   'imagem_url',
-  'nota',
   'galeria',
 ];
 

@@ -1,16 +1,5 @@
 import restaurantService from '../services/restaurantServices.js';
-
-function obterStatusErro(error) {
-  if (error.message.includes('não encontrado')) {
-    return 404;
-  }
-
-  if (error.message.includes('permissão')) {
-    return 403;
-  }
-
-  return 400;
-}
+import { obterStatusErro } from '../utils/httpErrors.js';
 
 async function listar(req, res) {
   try {

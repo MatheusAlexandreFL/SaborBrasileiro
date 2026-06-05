@@ -51,7 +51,7 @@ async function login(email, senha) {
    const token = jwt.sign(
        { id: usuario.id, tipoUsuario: usuario.tipoUsuario, nome: usuario.nome },
        process.env.SECRET_KEY,
-       { expiresIn: '1h' }
+       { expiresIn: '8h' }
    );
    return { token, foto_perfil: usuario.foto_perfil };
 }

@@ -2,7 +2,6 @@ function validarRestaurante(req, res, next) {
     const isUpdate = req.method === 'PUT' || req.method === 'PATCH';
     const { nome, descricao, categoria, rua, numero, bairro, cep, cidade, estado, telefone, imagem_url, galeria } = req.body;
 
-    // Se for criação (POST), todos os campos essenciais são obrigatórios
     if (!isUpdate) {
         if (!nome || typeof nome !== 'string' || nome.trim() === '') {
             return res.status(400).json({ error: 'O nome do restaurante é obrigatório e deve ser um texto válido.' });
@@ -26,7 +25,6 @@ function validarRestaurante(req, res, next) {
             return res.status(400).json({ error: 'O estado é obrigatório e deve conter exatamente 2 caracteres.' });
         }
     } else {
-        // Se for atualização (PUT/PATCH), valida os campos apenas se estiverem presentes no body
         if (nome !== undefined && (typeof nome !== 'string' || nome.trim() === '')) {
             return res.status(400).json({ error: 'O nome do restaurante deve ser um texto válido.' });
         }
@@ -50,7 +48,6 @@ function validarRestaurante(req, res, next) {
         }
     }
 
-    // Validações adicionais para campos opcionais (independente de ser criação ou atualização, se informados)
     if (descricao !== undefined && descricao !== null && typeof descricao !== 'string') {
         return res.status(400).json({ error: 'A descrição deve ser um texto válido.' });
     }

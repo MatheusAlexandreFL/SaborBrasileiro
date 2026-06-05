@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { restaurantService, userService } from "../services/api";
+import { restaurantService, userService, pratoService } from "../services/api";
 
 const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userPhoto, hideSearch = false, hideFilter = false }) => {
   const location = useLocation();
@@ -11,7 +11,6 @@ const Navbar = ({ searchQuery, setSearchQuery, onFilterClick, onMenuClick, userP
   useEffect(() => {
     const fetchSearchData = async () => {
       try {
-        const { pratoService } = await import("../services/api");
         const [rests, prats] = await Promise.all([
           restaurantService.listar(),
           pratoService.listarPratos()

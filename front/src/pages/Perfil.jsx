@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import ConfirmModal from "../components/ConfirmModal";
-import { userService } from "../services/api";
+import { userService, restaurantService } from "../services/api";
 import { CATEGORIES } from "../mockData";
 
 const Perfil = () => {
@@ -152,7 +152,6 @@ const Perfil = () => {
           imagem_url: imagemUrl
         };
         
-        const { restaurantService } = await import("../services/api");
         if (isNovoRestaurante) {
           await restaurantService.criar(dadosRestaurante);
         } else if (restauranteSelecionado) {
@@ -224,7 +223,6 @@ const Perfil = () => {
     try {
       setSalvando(true);
       setMensagem(null);
-      const { restaurantService } = await import("../services/api");
       await restaurantService.deletar(restauranteSelecionado.id);
       
       setMensagem({ tipo: "sucesso", texto: "Restaurante excluído com sucesso!" });

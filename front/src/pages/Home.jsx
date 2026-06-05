@@ -1,13 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { restaurantService } from "../services/api";
+import { restaurantService, userService } from "../services/api";
 import usePratos from "../hooks/usePratos";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import RestaurantCard from "../components/RestaurantCard";
 import DishCard from "../components/DishCard";
 import { CATEGORIES, HERO_COLLAGE } from "../mockData";
-
 
 const Home = () => {
   const navigate = useNavigate();
@@ -16,20 +15,25 @@ const Home = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("Início");
   const [restaurants, setRestaurants] = useState([]);
+  const [loadingRestaurants, setLoadingRestaurants] = useState(true);
   const [tipoUsuario, setTipoUsuario] = useState("cliente");
   const [meusRestaurantes, setMeusRestaurantes] = useState([]);
   const [showMeusRestaurantesDropdown, setShowMeusRestaurantesDropdown] = useState(false);
   const [showMeusPratosDropdown, setShowMeusPratosDropdown] = useState(false);
   const [showAllRestaurants, setShowAllRestaurants] = useState(false);
   const [showAllDishes, setShowAllDishes] = useState(false);
-  const { dishes } = usePratos();
+  const { dishes, loading: loadingDishes } = usePratos();
+
+  const meusRestaurantesRef = useRef(null);
+  const meusPratosRef = useRef(null);
 
   useEffect(() => {
     const fetchDados = async () => {
+      setLoadingRestaurants(true);
       try {
         const token = localStorage.getItem("token");
         if (token) {
-          const perfilApi = await import("../services/api").then(m => m.userService.getPerfil());
+          const perfilApi = await userService.getPerfil();
           setTipoUsuario(perfilApi.tipoUsuario || "cliente");
           if (perfilApi.restaurantes) setMeusRestaurantes(perfilApi.restaurantes);
         }
@@ -39,24 +43,40 @@ const Home = () => {
 
       try {
         const data = await restaurantService.listar();
-
-        const mapped = data.map(r => {
-          return {
-            id: r.id,
-            name: r.nome,
-            rating: parseFloat(r.nota) || 0,
-            category: r.categoria,
-            location: `${r.cidade}, ${r.estado}`,
-            image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60"
-          };
-        });
+        const mapped = data.map(r => ({
+          id: r.id,
+          name: r.nome,
+          rating: parseFloat(r.nota) || 0,
+          category: r.categoria,
+          location: `${r.cidade}, ${r.estado}`,
+          image: r.imagem_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60"
+        }));
         setRestaurants(mapped);
       } catch (error) {
         console.error("Erro ao carregar restaurantes:", error);
+      } finally {
+        setLoadingRestaurants(false);
       }
     };
 
     fetchDados();
+  }, []);
+
+  // Monitorar cliques fora para fechar os dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (meusRestaurantesRef.current && !meusRestaurantesRef.current.contains(event.target)) {
+        setShowMeusRestaurantesDropdown(false);
+      }
+      if (meusPratosRef.current && !meusPratosRef.current.contains(event.target)) {
+        setShowMeusPratosDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const filteredRestaurants = restaurants.filter((r) => {
@@ -84,7 +104,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[#F8EDDB]/30 flex flex-col font-sans text-black">
-
       <Navbar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -92,12 +111,10 @@ const Home = () => {
         hideFilter={true}
       />
 
-
       <main className="flex-1 max-w-[1200px] w-full mx-auto px-6 py-8 flex flex-col gap-12">
-
-
+        
+        {/* HERO SECTION */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mt-4">
-
           <div className="lg:col-span-6 flex flex-col justify-center gap-4 text-left">
             <h1 className="font-serif text-[42px] md:text-[48px] font-extrabold text-black leading-[1.15] tracking-tight">
               Os sabores mais amados, <br />
@@ -111,7 +128,7 @@ const Home = () => {
             {tipoUsuario === "dono" && (
               <div className="flex flex-wrap gap-3 mt-2">
                 {meusRestaurantes.length > 0 ? (
-                  <div className="relative">
+                  <div className="relative" ref={meusRestaurantesRef}>
                     <button
                       onClick={() => setShowMeusRestaurantesDropdown(!showMeusRestaurantesDropdown)}
                       className="w-fit bg-[#C13D33] border border-transparent text-white font-bold text-[14px] px-5 py-2 rounded-[8px] outline-none cursor-pointer hover:bg-[#a53229] transition-colors shadow-xs active:scale-98 flex items-center gap-1.5"
@@ -149,7 +166,7 @@ const Home = () => {
                 )}
                 
                 {meusRestaurantes.length > 0 ? (
-                  <div className="relative">
+                  <div className="relative" ref={meusPratosRef}>
                     <button
                       onClick={() => setShowMeusPratosDropdown(!showMeusPratosDropdown)}
                       className="w-fit bg-white border border-[#C13D33] text-[#C13D33] font-bold text-[14px] px-5 py-2 rounded-[8px] outline-none cursor-pointer hover:bg-[#C13D33]/10 transition-colors shadow-xs active:scale-98 flex items-center gap-1.5"
@@ -193,8 +210,6 @@ const Home = () => {
             )}
           </div>
 
-
-
           <div className="lg:col-span-6 flex justify-end">
             <div className="grid grid-cols-5 gap-2 max-w-[500px] w-full">
               {HERO_COLLAGE.map((imgUrl, index) => (
@@ -214,12 +229,12 @@ const Home = () => {
           </div>
         </section>
 
-
+        {/* CATEGORIES FILTER */}
         <section className="flex flex-col gap-4 mt-4 border-t border-black/5 pt-8">
           <h2 className="text-[15px] font-bold text-black/40 uppercase tracking-wider">
             Filtrar por Categoria
           </h2>
-          <div className="flex overflow-x-auto gap-2.5 pb-2 no-scrollbar -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap">
+          <div className="flex overflow-x-auto gap-2.5 pb-3 w-full custom-scrollbar">
             {CATEGORIES.map((category) => (
               <button
                 key={category.id}
@@ -241,7 +256,7 @@ const Home = () => {
             <h2 className="font-serif text-[24px] md:text-[28px] font-extrabold text-black">
               Os restaurantes <span className="text-[#C13D33]">mais bem avaliados</span> da semana
             </h2>
-            {filteredRestaurants.length > 0 && (
+            {filteredRestaurants.length > 0 && !loadingRestaurants && (
               <button
                 onClick={() => setShowAllRestaurants(!showAllRestaurants)}
                 className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group cursor-pointer bg-transparent border-none outline-none"
@@ -261,7 +276,18 @@ const Home = () => {
             )}
           </div>
 
-          {restaurantsToDisplay.length > 0 ? (
+          {loadingRestaurants ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="animate-pulse bg-white border border-black/5 rounded-[19px] p-4 flex flex-col gap-3 h-[280px]">
+                  <div className="bg-black/5 rounded-[12px] h-[150px] w-full"></div>
+                  <div className="h-4 bg-black/5 rounded w-3/4"></div>
+                  <div className="h-3 bg-black/5 rounded w-1/2"></div>
+                  <div className="h-3 bg-black/5 rounded w-1/4 mt-auto"></div>
+                </div>
+              ))}
+            </div>
+          ) : restaurantsToDisplay.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {restaurantsToDisplay.map((restaurant, idx) => (
                 <RestaurantCard
@@ -289,7 +315,7 @@ const Home = () => {
             <h2 className="font-serif text-[24px] md:text-[28px] font-extrabold text-black">
               Pratos em destaque
             </h2>
-            {filteredDishes.length > 0 && (
+            {filteredDishes.length > 0 && !loadingDishes && (
               <button
                 onClick={() => setShowAllDishes(!showAllDishes)}
                 className="text-[#C13D33] font-bold text-[14px] no-underline hover:underline flex items-center gap-1 group cursor-pointer bg-transparent border-none outline-none"
@@ -309,7 +335,17 @@ const Home = () => {
             )}
           </div>
 
-          {dishesToDisplay.length > 0 ? (
+          {loadingDishes ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="animate-pulse bg-white border border-black/5 rounded-[19px] p-4 flex flex-col gap-3 h-[240px]">
+                  <div className="bg-black/5 rounded-[12px] h-[120px] w-full"></div>
+                  <div className="h-4 bg-black/5 rounded w-3/4"></div>
+                  <div className="h-3 bg-black/5 rounded w-1/2 mt-auto"></div>
+                </div>
+              ))}
+            </div>
+          ) : dishesToDisplay.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {dishesToDisplay.map((dish) => (
                 <DishCard
@@ -331,10 +367,10 @@ const Home = () => {
         </section>
 
         {/* CALL TO ACTION (CTA) SECTION */}
-        {tipoUsuario !== "cliente" && (
+        {tipoUsuario === "cliente" && (
           <section className="bg-white rounded-[24px] border border-black/5 overflow-hidden shadow-xs hover:shadow-md transition-shadow duration-300 p-8 md:p-12 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-
+              
               {/* Left Copywriting */}
               <div className="md:col-span-7 flex flex-col gap-4 text-left">
                 <h2 className="font-serif text-[32px] md:text-[36px] font-extrabold text-black leading-tight">
@@ -431,11 +467,9 @@ const Home = () => {
                   <rect x="150" y="133" width="6" height="12" fill="#E88C7D" opacity="0.8" />
                 </svg>
               </div>
-
             </div>
           </section>
         )}
-
       </main>
 
       {/* FOOTER */}

@@ -1,6 +1,6 @@
 import database from '../database/exports.js';
 
-async function criar_avaliacao(dados) {
+async function criarAvaliacao(dados) {
     const { id_usuario, id_restaurante, id_prato, nota, comentario } = dados;
 
     if (id_restaurante) {
@@ -21,7 +21,7 @@ async function criar_avaliacao(dados) {
     return { message: 'Avaliação criada com sucesso' };
 }
 
-async function listar_avaliacoes(filtros) {
+async function listarAvaliacoes(filtros) {
     let query = database("avaliacoes")
         .join('usuarios', 'avaliacoes.id_usuario', 'usuarios.id')
         .select(
@@ -43,7 +43,7 @@ async function listar_avaliacoes(filtros) {
     return await query;
 }
 
-async function editar_avaliacao(id_avaliacao, id_usuario, dados) {
+async function editarAvaliacao(id_avaliacao, id_usuario, dados) {
     const { nota, comentario } = dados;
 
     const result = await database("avaliacoes").where({ id: id_avaliacao, id_usuario: id_usuario }).update({
@@ -58,7 +58,7 @@ async function editar_avaliacao(id_avaliacao, id_usuario, dados) {
     return { message: 'Avaliação editada com sucesso' };
 }
 
-async function deletar_avaliacao(id_avaliacao, id_usuario) {
+async function deletarAvaliacao(id_avaliacao, id_usuario) {
     const result = await database("avaliacoes").where({ id: id_avaliacao, id_usuario: id_usuario }).delete();
 
     if (result === 0) {
@@ -69,8 +69,8 @@ async function deletar_avaliacao(id_avaliacao, id_usuario) {
 }
 
 export default {
-    criar_avaliacao,
-    editar_avaliacao,
-    deletar_avaliacao,
-    listar_avaliacoes
-}
+    criarAvaliacao,
+    editarAvaliacao,
+    deletarAvaliacao,
+    listarAvaliacoes
+};
