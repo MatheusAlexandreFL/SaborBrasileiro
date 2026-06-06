@@ -62,7 +62,7 @@ const SaborHeader = () => {
           <div className="flex items-center justify-between gap-4 md:w-auto md:shrink-0 xl:w-[350px]">
             <a
               href="/home"
-              className="font-playwrite whitespace-nowrap text-[18px] leading-none text-black hover:cursor-pointer min-[380px]:text-2xl sm:text-3xl md:text-2xl lg:text-3xl"
+              className="text-[#C13D33] font-extrabold no-underline hover:opacity-90 transition-opacity font-serif italic whitespace-nowrap leading-none hover:cursor-pointer text-[18px] min-[380px]:text-2xl sm:text-3xl md:text-2xl lg:text-3xl"
             >
               Sabor Brasileiro
             </a>

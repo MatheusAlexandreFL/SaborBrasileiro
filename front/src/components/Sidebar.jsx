@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const Sidebar = ({ activeItem, isOpen, navItems, onClose, onSelect }) => {
     return (
         <>
@@ -14,7 +16,13 @@ const Sidebar = ({ activeItem, isOpen, navItems, onClose, onSelect }) => {
                 aria-label="Menu de navegação"
             >
                 <div className="flex h-16 items-center justify-between border-b border-zinc-200 px-5">
-                    <span className="font-playwrite text-[22px] leading-none text-black">Sabor Brasileiro</span>
+                    <Link
+                        to="/home"
+                        className="text-[#C13D33] text-[22px] font-extrabold no-underline hover:opacity-90 transition-opacity font-serif italic leading-none"
+                        onClick={onClose}
+                    >
+                        Sabor Brasileiro
+                    </Link>
                     <button type="button" className="grid size-9 place-items-center text-black hover:cursor-pointer" onClick={onClose}>
                         <span className="sr-only">Fechar menu</span>
                         <CloseIcon />

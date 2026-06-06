@@ -5,35 +5,29 @@ import Sidebar from "../components/Sidebar";
 const INTEGRANTES = [
   {
     nome: "Ana Beatriz Peixoto do Nascimento",
-    iniciais: "AN",
+    nickname: "biapxt",
     corGradiente: "from-pink-500 to-rose-500",
     github: "https://github.com/biapxt",
     linkedin: "https://www.linkedin.com/in/beatrizz-peixoto/",
   },
   {
     nome: "Daniel Brito de Souza",
-    iniciais: "DB",
+    nickname: "Paladino606",
     corGradiente: "from-blue-500 to-indigo-500",
     github: "https://github.com/Paladino606",
     linkedin: "https://www.linkedin.com/in/daniel-brito-de-souza-190b953b4/",
   },
-  {
-    nome: "Ismael Gama Geraldo",
-    iniciais: "IG",
-    corGradiente: "from-teal-500 to-emerald-500",
-    github: "https://github.com/ismaelgama",
-    linkedin: "https://www.linkedin.com/in/ismael-gama-234691240/",
-  },
+
   {
     nome: "Matheus Alexandre Ferreira Leite",
-    iniciais: "ML",
+    nickname: "MatheusAlexandreFL",
     corGradiente: "from-amber-500 to-orange-500",
     github: "https://github.com/MatheusAlexandreFL",
     linkedin: "https://www.linkedin.com/in/matheus-alexandre-ferreira/",
   },
   {
     nome: "Tony Terra Nova Portela",
-    iniciais: "TP",
+    nickname: "ItsTonyy",
     corGradiente: "from-violet-500 to-purple-500",
     github: "https://github.com/ItsTonyy",
     linkedin: "https://www.linkedin.com/in/tony-terra-nova/",
@@ -77,8 +71,8 @@ const SobreNos = () => {
               className="group bg-white/70 backdrop-blur-md border border-white/50 rounded-[28px] shadow-lg p-8 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-[#C13D33]/30"
             >
 
-              <div className={`w-20 h-20 rounded-full bg-gradient-to-tr ${m.corGradiente} text-white font-bold text-[26px] flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110 select-none`}>
-                {m.iniciais}
+              <div className="w-20 h-20 rounded-full relative flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110 select-none">
+                <img className="absolute w-full h-full object-cover rounded-full" src={`https://github.com/${m.nickname}.png`} alt={m.nome} />
               </div>
 
 

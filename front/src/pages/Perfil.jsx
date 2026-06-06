@@ -153,8 +153,33 @@ const Perfil = () => {
         };
         
         if (isNovoRestaurante) {
-          await restaurantService.criar(dadosRestaurante);
+          const temDadosRestaurante = 
+            restauranteNome.trim() || 
+            descricao.trim() || 
+            categoria.trim() || 
+            rua.trim() || 
+            numero.trim() || 
+            bairro.trim() || 
+            cep.trim() || 
+            cidade.trim() || 
+            estado.trim() || 
+            telefone.trim() || 
+            imagemUrl.trim();
+
+          if (temDadosRestaurante) {
+            if (!restauranteNome.trim()) {
+              setMensagem({ tipo: "erro", texto: "O nome do restaurante é obrigatório para cadastrá-lo." });
+              setSalvando(false);
+              return;
+            }
+            await restaurantService.criar(dadosRestaurante);
+          }
         } else if (restauranteSelecionado) {
+          if (!restauranteNome.trim()) {
+            setMensagem({ tipo: "erro", texto: "O nome do restaurante é obrigatório." });
+            setSalvando(false);
+            return;
+          }
           await restaurantService.atualizar(restauranteSelecionado.id, dadosRestaurante);
         }
         await fetchPerfil();
